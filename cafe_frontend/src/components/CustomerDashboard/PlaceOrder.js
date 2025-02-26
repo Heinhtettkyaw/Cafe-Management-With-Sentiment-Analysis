@@ -96,7 +96,7 @@ const PlaceOrder = ({ token }) => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                 {menuItems.filter(item => item.available)
                     .map(item => (
-                        <div key={item.id} className="bg-white p-4 shadow rounded">
+                        <div key={item.id} className="bg-[var(--primary-bg)] p-4 shadow rounded">
                             <h3 className="text-xl font-semibold">{item.name}</h3>
                             <p>{item.description}</p>
                             <p className="font-bold">${item.price}</p>
@@ -133,7 +133,7 @@ const PlaceOrder = ({ token }) => {
                                         +
                                     </button>
                                 </div>
-                                - ${item.price * item.quantity}
+                                ${item.price * item.quantity}
                             </li>
                         ))}
                     </ul>

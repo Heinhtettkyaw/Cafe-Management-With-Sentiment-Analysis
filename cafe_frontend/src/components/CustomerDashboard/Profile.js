@@ -56,7 +56,7 @@ const Profile = () => {
     return (
         <div className="flex h-screen">
             {/* Left Sidebar Menu */}
-            <div className="w-64 bg-gray-200 flex flex-col justify-between py-4 border-r border-gray-300">
+            <div className="w-64 bg-[var(--primary-bg)] flex flex-col justify-between py-4 border-r border-gray-300">
                 <div className="space-y-2 px-4">
                     <h3 className="text-lg font-bold mb-4">Profile</h3>
                     <button
@@ -93,7 +93,7 @@ const Profile = () => {
                             onChange={(e) =>
                                 setEditData({ ...editData, fullName: e.target.value })
                             }
-                            className="w-full px-4 py-2 border border-gray-300 rounded-md"
+                            className="w-full px-4 py-2 border bg-[var(--primary-bg)] border-gray-300 rounded-md"
                         />
                         <input
                             type="email"
@@ -102,7 +102,7 @@ const Profile = () => {
                             onChange={(e) =>
                                 setEditData({ ...editData, email: e.target.value })
                             }
-                            className="w-full px-4 py-2 border border-gray-300 rounded-md"
+                            className="w-full px-4 py-2 border  bg-[var(--primary-bg)] border-gray-300 rounded-md"
                         />
                         <input
                             type="text"
@@ -111,14 +111,14 @@ const Profile = () => {
                             onChange={(e) =>
                                 setEditData({ ...editData, phone: e.target.value })
                             }
-                            className="w-full px-4 py-2 border border-gray-300 rounded-md"
+                            className="w-full px-4 py-2 border  bg-[var(--primary-bg)] border-gray-300 rounded-md"
                         />
                         <select
                             value={editData.gender || ''}
                             onChange={(e) =>
                                 setEditData({ ...editData, gender: e.target.value })
                             }
-                            className="w-full px-4 py-2 border border-gray-300 rounded-md"
+                            className="w-full px-4 py-2 border bg-[var(--primary-bg)] border-gray-300 rounded-md"
                         >
                             <option value="" disabled hidden>
                                 Select Gender
@@ -145,7 +145,7 @@ const Profile = () => {
                             onChange={(e) =>
                                 setPasswordData({ ...passwordData, oldPassword: e.target.value })
                             }
-                            className="w-full px-4 py-2 border border-gray-300 rounded-md"
+                            className="w-full px-4 py-2   bg-[var(--primary-bg)] border-gray-300 rounded-md"
                         />
                         <input
                             type="password"
@@ -154,7 +154,7 @@ const Profile = () => {
                             onChange={(e) =>
                                 setPasswordData({ ...passwordData, newPassword: e.target.value })
                             }
-                            className="w-full px-4 py-2 border border-gray-300 rounded-md"
+                            className="w-full px-4 py-2 border  bg-[var(--primary-bg)] border-gray-300 rounded-md"
                         />
                         <input
                             type="password"

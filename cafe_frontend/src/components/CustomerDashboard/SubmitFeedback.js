@@ -35,24 +35,25 @@ const SubmitFeedback = ({ token }) => {
 
     return (
         <div>
-            <h2 className="text-2xl font-bold mb-2">Submit Feedback</h2>
-
-            {error && <div className="text-red-500">{error}</div>}
-            {successMessage && <div className="text-green-500">{successMessage}</div>}
+            {successMessage && (
+                <div className="bg-green-100 text-green-800 p-4 rounded mb-4">
+                    {successMessage}
+                </div>
+            )}
 
             <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                    <label className="block text-sm font-medium text-gray-700">Feedback Message</label>
+                    <label className="block text-sm font-medium mb-2">Feedback Message</label>
                     <textarea
                         value={feedbackMessage}
                         onChange={(e) => setFeedbackMessage(e.target.value)}
                         required
-                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
-                    ></textarea>
+                        className="w-full px-3 py-2 border  bg-[var(--primary-bg)] rounded-lg focus:ring focus:ring-blue-300"
+                    />
                 </div>
 
                 <div>
-                    <label className="block text-sm font-medium text-gray-700">Rating (1 to 5)</label>
+                    <label className="block text-sm font-medium mb-2">Rating (1-5)</label>
                     <input
                         type="number"
                         min="1"
@@ -60,13 +61,13 @@ const SubmitFeedback = ({ token }) => {
                         value={rating}
                         onChange={(e) => setRating(e.target.value)}
                         required
-                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
+                        className="w-full px-3 py-2 border  bg-[var(--primary-bg)] rounded-lg focus:ring focus:ring-blue-300"
                     />
                 </div>
 
                 <button
                     type="submit"
-                    className="w-full bg-blue-500 hover:bg-blue-600 text-white font-medium px-4 py-2 rounded-md"
+                    className="w-full bg-yellow-500 text-white px-4 py-2 rounded-lg hover:bg-yellow-600 transition"
                 >
                     Submit Feedback
                 </button>

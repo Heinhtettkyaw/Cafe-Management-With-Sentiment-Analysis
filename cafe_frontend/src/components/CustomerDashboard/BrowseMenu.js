@@ -1,4 +1,3 @@
-// src/components/CustomerDashboard/BrowseMenu.js
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
@@ -24,17 +23,22 @@ const BrowseMenu = ({ token }) => {
 
     return (
         <div>
-            <h2 className="text-2xl font-bold mb-2">Browse Menu</h2>
-            {error && <div className="text-red-500">{error}</div>}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {error && <div className="bg-red-100 text-red-800 p-4 rounded mb-4">{error}</div>}
 
-                    {menuItems
-                            .map(item => (
-                    <div key={item.id} className="bg-white p-4 shadow rounded">
-                        <h3 className="text-xl font-semibold">{item.name}</h3>
-                        <p>{item.description}</p>
-                        <p className="font-bold">${item.price}</p>
-                        {!item.available && <p className="text-red-500">Unavailable</p>}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {menuItems.map(item => (
+                    <div
+                        key={item.id}
+                        className="bg-[var(--primary-bg)] rounded-lg shadow p-4 hover:bg-[var(--primary-bg)] transition"
+                    >
+                        <h3 className="text-lg font-semibold mb-2">{item.name}</h3>
+                        <p className="text-gray-600 dark:text-gray-400 mb-2">{item.description}</p>
+                        <p className="text-xl font-medium bg-[var(--primary-bg)] mb-2">${item.price}</p>
+                        {!item.available && (
+                            <span className="bg-red-200 text-red-800 px-2 py-1 rounded-full text-xs">
+                Unavailable
+              </span>
+                        )}
                     </div>
                 ))}
             </div>

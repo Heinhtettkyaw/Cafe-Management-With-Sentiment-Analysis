@@ -28,7 +28,7 @@ const ViewOrders = ({ token }) => {
             {error && <div className="text-red-500">{error}</div>}
             <table className="min-w-full border">
                 <thead>
-                <tr className="bg-gray-200">
+                <tr className="text-[var(--primary-text)]">
                     <th className="p-2 border">Order ID</th>
                     <th className="p-2 border">Total Amount</th>
                     <th className="p-2 border">Status</th>

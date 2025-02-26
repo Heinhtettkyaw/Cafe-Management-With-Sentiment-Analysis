@@ -34,13 +34,17 @@ const AdminDashboard = ({ token }) => {
     return (
         <div className="min-h-screen bg-[var(--primary-bg)] text-[var(--primary-text)] transition-all duration-300">
             {/* Sidebar */}
-            <aside className="fixed top-0 left-0 z-50 w-64 h-screen bg-[var(--primary-bg)] shadow-xl pt-6 pb-4">
+            <aside className="fixed top-0 left-0 z-50 w-80 h-screen bg-[var(--primary-bg)] shadow-xl pt-6 pb-4">
                 <div className="px-4 mb-6 flex items-center justify-between">
                     {/*<img src="/logo.png" alt="Admin Logo" className="h-12 w-auto" />*/}
                     <h2 className="text-[var(--primary-text)] text-2xl mb-4">Admin Dashboard</h2>
-                    <button onClick={toggleTheme} className="p-2 rounded-full hover:bg-[var(--primary-bg)]">
+                    <button onClick={toggleTheme} className="p-2 rounded-full hover:[var(--primary-bg)]">
                         {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
                     </button>
+                    <button
+                        onClick={handleLogout}
+                        className="p-2 rounded-full hover:bg-red-600 text-red-500 hover:text-white transition"
+                    >Logout</button>
                 </div>
 
                 <nav className="space-y-2 px-4">
@@ -88,6 +92,7 @@ const AdminDashboard = ({ token }) => {
 
             {/* Main Content */}
             <main className="ml-64 px-8 py-10">
+
                 <div className="p-6 bg-[var(--primary-bg)] rounded-2xl shadow-lg">
                     {/*<h1 className="text-2xl font-bold mb-4">Dashboard</h1>*/}
                     {activeTab === 'menu' && <ManageMenu token={token} />}

@@ -1,4 +1,3 @@
-// src/components/LoginSignup.js
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
@@ -65,9 +64,10 @@ const LoginSignup = ({ setToken }) => {
     };
 
     return (
+
         <div className="min-h-screen bg-gray-100 flex items-center justify-center">
             <div className="bg-white p-8 rounded-md shadow-lg w-96">
-                <h2 className="text-2xl font-bold text-center mb-6">{isLogin ? 'Login' : 'Sign Up'}</h2>
+                <h2 className="text-2xl font-bold text-gray-700 text-center mb-6">{isLogin ? 'Login' : 'Sign Up'}</h2>
                 <form onSubmit={handleSubmit} className="space-y-4">
                     {/* Username Field */}
                     <div>
