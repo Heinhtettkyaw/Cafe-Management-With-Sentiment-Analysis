@@ -1,4 +1,3 @@
-// src/components/AdminDashboard/ViewUsers.js
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
@@ -7,45 +6,72 @@ const ViewUsers = ({ token }) => {
     const [error, setError] = useState('');
 
     useEffect(() => {
+        const fetchUsers = async () => {
+            try {
+                const response = await axios.get('http://localhost:8081/api/admin/users', {
+                    headers: { 'Authorization': `Bearer ${token}` },
+                });
+                setUsers(response.data);
+            } catch (err) {
+                setError('Error fetching users');
+                console.error(err);
+            }
+        };
         fetchUsers();
     }, [token]);
 
-    const fetchUsers = async () => {
-        try {
-            const response = await axios.get('http://localhost:8081/api/admin/users', {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            setUsers(response.data);
-        } catch (err) {
-            setError('Error fetching users');
-            console.error(err);
-        }
-    };
-
     return (
-        <div>
-            <h2 className="text-2xl font-bold mb-2">View Users</h2>
-            {error && <div className="text-red-500">{error}</div>}
-            <table className="min-w-full border">
+        <div className="bg-[var(--primary-bg)] rounded-lg shadow-md p-6 mt-10">
+            <h2 className="text-[var(--primary-text)] text-2xl mb-4">View Users</h2>
+            {error && (
+                <div className="bg-red-100 text-red-600 p-4 rounded-lg mb-4">
+                    <p>{error}</p>
+                </div>
+            )}
+            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                 <thead>
-                <tr className="bg-gray-200">
-                    <th className="p-2 border">ID</th>
-                    <th className="p-2 border">Username</th>
-                    <th className="p-2 border">Email</th>
-                    <th className="p-2 border">Full Name</th>
-                    <th className="p-2 border">Phone</th>
-                    <th className="p-2 border">Gender</th>
+                <tr>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        ID
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Username
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Email
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Full Name
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Phone
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Gender
+                    </th>
                 </tr>
                 </thead>
-                <tbody>
-                {users.map(user => (
-                    <tr key={user.id}>
-                        <td className="p-2 border">{user.id}</td>
-                        <td className="p-2 border">{user.username}</td>
-                        <td className="p-2 border">{user.email}</td>
-                        <td className="p-2 border">{user.fullName}</td>
-                        <td className="p-2 border">{user.phone}</td>
-                        <td className="p-2 border">{user.gender}</td>
+                <tbody className="bg-[var(--primary-bg)] divide-y divide-gray-200 dark:divide-gray-700">
+                {users.map((user) => (
+                    <tr key={user.id} className="hover:bg-[var(--primary-bg)]">
+                        <td className="px-6 py-4 whitespace-nowrap">
+                            {user.id}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                            {user.username}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                            {user.email}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                            {user.fullName}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                            {user.phone}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                            {user.gender}
+                        </td>
                     </tr>
                 ))}
                 </tbody>
