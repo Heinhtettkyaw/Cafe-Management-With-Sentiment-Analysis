@@ -33,6 +33,8 @@ const ViewUsers = ({ token }) => {
                     <th className="p-2 border">Username</th>
                     <th className="p-2 border">Email</th>
                     <th className="p-2 border">Full Name</th>
+                    <th className="p-2 border">Phone</th>
+                    <th className="p-2 border">Gender</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -42,6 +44,8 @@ const ViewUsers = ({ token }) => {
                         <td className="p-2 border">{user.username}</td>
                         <td className="p-2 border">{user.email}</td>
                         <td className="p-2 border">{user.fullName}</td>
+                        <td className="p-2 border">{user.phone}</td>
+                        <td className="p-2 border">{user.gender}</td>
                     </tr>
                 ))}
                 </tbody>

@@ -120,13 +120,13 @@ const ManageMenu = ({ token }) => {
                     onChange={(e) => setNewItem({ ...newItem, price: e.target.value })}
                     className="border p-2 mr-2"
                 />
-                <input
-                    type="text"
-                    placeholder="Image URL"
-                    value={newItem.imageUrl}
-                    onChange={(e) => setNewItem({ ...newItem, imageUrl: e.target.value })}
-                    className="border p-2 mr-2"
-                />
+                {/*<input*/}
+                {/*    type="text"*/}
+                {/*    placeholder="Image URL"*/}
+                {/*    value={newItem.imageUrl}*/}
+                {/*    onChange={(e) => setNewItem({ ...newItem, imageUrl: e.target.value })}*/}
+                {/*    className="border p-2 mr-2"*/}
+                {/*/>*/}
                 <button onClick={editingItem ? handleUpdateMenuItem : handleAddMenuItem} className="px-4 py-2 bg-green-500 text-white rounded">
                     {editingItem ? 'Update Item' : 'Add Item'}
                 </button>
