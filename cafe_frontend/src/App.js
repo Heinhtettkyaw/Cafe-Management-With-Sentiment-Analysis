@@ -4,6 +4,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import LoginSignup from './components/LoginSignup';
 import AdminDashboard from './components/AdminDashboard/AdminDashboard';
 import CustomerDashboard from './components/CustomerDashboard/CustomerDashboard';
+import CustomerLanding from "./components/CustomerLanding";
 import './index.css';
 
 function App() {
@@ -23,7 +24,8 @@ function App() {
     return (
         <Router>
             <Routes>
-                <Route path="/" element={<LoginSignup setToken={setToken} />} />
+                <Route path="/" element={<CustomerLanding />} />
+                <Route path="/login" element={<LoginSignup setToken={setToken} />} />
                 <Route
                     path="/admin"
                     element={
