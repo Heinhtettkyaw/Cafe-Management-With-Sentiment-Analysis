@@ -44,6 +44,9 @@ const ManageFeedback = ({ token }) => {
                         Rating
                     </th>
                     <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Sentiment
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Date
                     </th>
                 </tr>
@@ -74,6 +77,9 @@ const ManageFeedback = ({ token }) => {
                                     </svg>
                                 ))}
                             </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                            {feedback.sentiment}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                             {new Date(feedback.createdAt).toLocaleString()}

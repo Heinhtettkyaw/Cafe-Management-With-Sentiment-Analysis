@@ -30,6 +30,7 @@ const ViewOrders = ({ token }) => {
                 <thead>
                 <tr className="text-[var(--primary-text)]">
                     <th className="p-2 border">Order ID</th>
+                    <th className="p-2 border">Item Names</th>
                     <th className="p-2 border">Total Amount</th>
                     <th className="p-2 border">Status</th>
                 </tr>
@@ -38,8 +39,24 @@ const ViewOrders = ({ token }) => {
                 {orders.map(order => (
                     <tr key={order.id}>
                         <td className="p-2 border">{order.id}</td>
+                        <td className="p-2 border"> {/* New data column */}
+                            {order.items?.map(item => item.menuItem?.name).join(', ') || 'Loading...'}
+                        </td>
                         <td className="p-2 border">${order.totalAmount}</td>
-                        <td className="p-2 border">{order.status}</td>
+                        {/*<td className="p-2 border">{order.status}</td>*/}
+                        <td className="p-2 border">
+                  <span
+                      className={`px-2 py-1 rounded-full ${
+                          order.status === 'COMPLETED'
+                              ? 'bg-green-500 text-white'
+                              : order.status === 'CANCELED'
+                                  ? 'bg-red-500 text-white'
+                                  : 'bg-yellow-500 text-white'
+                      }`}
+                  >
+                    {order.status}
+                  </span>
+                        </td>
                     </tr>
                 ))}
                 </tbody>

@@ -11,8 +11,8 @@ const SubmitFeedback = ({ token }) => {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        if (!feedbackMessage || !rating) {
-            setError('Please provide feedback message and rating.');
+        if (!feedbackMessage) {
+            setError('Please provide a feedback message and rating.');
             return;
         }
 
@@ -23,6 +23,7 @@ const SubmitFeedback = ({ token }) => {
                 { headers: { Authorization: `Bearer ${token}` } }
             );
 
+            // setSuccessMessage(response.data.message + ". Sentiment: " + response.data.sentiment);
             setSuccessMessage(response.data.message);
             setFeedbackMessage('');
             setRating('');
@@ -41,6 +42,12 @@ const SubmitFeedback = ({ token }) => {
                 </div>
             )}
 
+            {error && (
+                <div className="bg-red-100 text-red-800 p-4 rounded mb-4">
+                    {error}
+                </div>
+            )}
+
             <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
                     <label className="block text-sm font-medium mb-2">Feedback Message</label>
@@ -48,7 +55,7 @@ const SubmitFeedback = ({ token }) => {
                         value={feedbackMessage}
                         onChange={(e) => setFeedbackMessage(e.target.value)}
                         required
-                        className="w-full px-3 py-2 border  bg-[var(--primary-bg)] rounded-lg focus:ring focus:ring-blue-300"
+                        className="w-full px-3 py-2 border bg-[var(--primary-bg)] rounded-lg focus:ring focus:ring-blue-300"
                     />
                 </div>
 
@@ -60,8 +67,8 @@ const SubmitFeedback = ({ token }) => {
                         max="5"
                         value={rating}
                         onChange={(e) => setRating(e.target.value)}
-                        required
-                        className="w-full px-3 py-2 border  bg-[var(--primary-bg)] rounded-lg focus:ring focus:ring-blue-300"
+
+                        className="w-full px-3 py-2 border bg-[var(--primary-bg)] rounded-lg focus:ring focus:ring-blue-300"
                     />
                 </div>
 

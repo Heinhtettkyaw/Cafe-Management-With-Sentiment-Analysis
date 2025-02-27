@@ -25,10 +25,13 @@ public class Feedback {
     @Column(nullable = false)
     private String feedbackMessage;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private String rating;  // You can store rating as a string, or use an enum
 
     @Column(nullable = false)
     private Long createdAt;
 
+    // New field to store sentiment analysis result (e.g., "Positive", "Negative", "Neutral")
+    @Column(nullable = true)
+    private String sentiment;
 }
