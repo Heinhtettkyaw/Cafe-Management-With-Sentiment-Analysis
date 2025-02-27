@@ -115,7 +115,7 @@ const BestSellingProducts = ({ token }) => {
                             {productData.map((product) => (
                                 <tr
                                     key={product.label}
-                                    className="hover:bg-gray-100 dark:hover:bg-gray-700 transition"
+                                    className="hover:bg-[var(--primary-bg)] transition"
                                 >
                                     <td className="px-4 py-2">{product.label}</td>
                                     <td className="px-4 py-2 font-medium">
