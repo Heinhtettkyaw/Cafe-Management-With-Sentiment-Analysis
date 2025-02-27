@@ -5,6 +5,7 @@ import ManageOrders from './ManageOrders';
 import ViewUsers from './ViewUsers';
 import ManageFeedback from './ManageFeedback';
 import SentimentAnalysisPage from "./SentimentAnalysisPage";
+import BestSellingProducts from "./BestSellingProducts";
 import { useNavigate } from 'react-router-dom';
 
 const AdminDashboard = ({ token }) => {
@@ -97,6 +98,15 @@ const AdminDashboard = ({ token }) => {
                         </svg>
                         Sentiment Analysis
                     </button>
+                    <button
+                        onClick={() => setActiveTab('bestselling')}
+                        className={`flex items-center p-3 rounded-lg ${activeTab === 'bestselling' ? 'bg-[var(--accent-color)] text-white' : 'hover:bg-[var(--primary-bg)]'}`}
+                    >
+                        <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-5 0a5 5 0 1110 0 5 5 0 01-10 0z" />
+                        </svg>
+                        Best Selling Products Analysis
+                    </button>
                 </nav>
             </aside>
 
@@ -110,6 +120,7 @@ const AdminDashboard = ({ token }) => {
                     {activeTab === 'users' && <ViewUsers token={token} />}
                     {activeTab === 'feedback' && <ManageFeedback token={token} />}
                     {activeTab === 'sentiment' && <SentimentAnalysisPage token={token} />}
+                    {activeTab === 'bestselling' && <BestSellingProducts token={token} />}
                 </div>
             </main>
         </div>
