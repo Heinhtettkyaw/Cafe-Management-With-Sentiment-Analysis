@@ -109,7 +109,7 @@ const ManageMenu = ({ token }) => {
     };
 
     return (
-        <div className="bg-[var(--primary-bg)]rounded-lg shadow-md p-6 mt-10">
+        <div className="bg-[var(--primary-bg)] rounded-lg shadow-md p-6 mt-10">
             <h2 className="text-[var(--primary-text)] text-2xl mb-4">Manage Menu Items</h2>
             {error && (
                 <div className="bg-red-100 text-red-600 p-4 rounded-lg mb-4">

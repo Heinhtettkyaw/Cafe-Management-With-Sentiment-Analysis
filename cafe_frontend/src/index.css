@@ -7,6 +7,8 @@
   --primary-bg: #f8f9fa; /* Light mode */
   --primary-text: #212529;
   --accent-color: #3B82F6;
+  --positive-color: #4CAF50;
+  --negative-color: #F44336;
 }
 
 
@@ -24,4 +26,12 @@ body {
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --primary-bg: #1a1a1a;
+    --primary-text: #e9ecef;
+    --positive-color: #4CAF50;
+    --negative-color: #F44336;
+  }
 }
