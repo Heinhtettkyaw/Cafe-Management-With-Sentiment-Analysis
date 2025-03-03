@@ -9,7 +9,7 @@ const CustomerLanding = () => {
                 <div className="max-w-7xl mx-auto flex items-center justify-between">
                     <h1 className="text-3xl font-extrabold text-gray-800">
                         <FaCoffee className="inline-block mr-2 text-4xl text-brown-600" />
-                        CaféFlow
+                        KyawGyiCafé
                     </h1>
                     <nav className="hidden md:flex space-x-6">
                         <a href="#features" className="text-gray-600 hover:text-gray-800 transition">
@@ -78,7 +78,7 @@ const CustomerLanding = () => {
                 {/* Features Section */}
                 <section id="features" className="mt-20 pb-12 border-b border-gray-200">
                     <h2 className="text-3xl font-bold text-gray-800 mb-8 text-center">
-                        Why Choose CaféFlow?
+                        Why Choose KyawGyiCafé?
                     </h2>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                         <div className="p-6 bg-white rounded-lg shadow hover:shadow-lg transition">
@@ -134,7 +134,7 @@ const CustomerLanding = () => {
 
             <footer className="bg-white py-6 mt-12">
                 <div className="max-w-7xl mx-auto text-center text-gray-500">
-                    <p>© 2025 CaféFlow. All rights reserved.</p>
+                    <p>© 2025 KyawGyiCafé. All rights reserved.</p>
                     <div className="flex justify-center space-x-4 mt-4">
                         <a href="#" className="text-gray-600 hover:text-gray-800 transition">
                             Privacy Policy

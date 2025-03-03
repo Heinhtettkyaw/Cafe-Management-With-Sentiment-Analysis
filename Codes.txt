@@ -1,0 +1,3512 @@
+F:\cafe_management_0.1\cafe
+pom.xml
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<version>3.4.3</version>
+		<relativePath/> <!-- lookup parent from repository -->
+	</parent>
+	<groupId>com.example</groupId>
+	<artifactId>cafe</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<name>cafe</name>
+	<description>Demo project for Spring Boot</description>
+	<url/>
+	<licenses>
+		<license/>
+	</licenses>
+	<developers>
+		<developer/>
+	</developers>
+	<scm>
+		<connection/>
+		<developerConnection/>
+		<tag/>
+		<url/>
+	</scm>
+	<properties>
+		<java.version>17</java.version>
+		<jjwt.version>0.11.5</jjwt.version>
+	</properties>
+	<dependencies>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
+		<!-- Spring Data JPA -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-security</artifactId>
+			<version>3.4.3</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-jpa</artifactId>
+		</dependency>
+		<!-- MySQL Driver -->
+		<dependency>
+			<groupId>mysql</groupId>
+			<artifactId>mysql-connector-java</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/mysql/mysql-connector-java -->
+		<dependency>
+			<groupId>mysql</groupId>
+			<artifactId>mysql-connector-java</artifactId>
+			<version>8.0.33</version>
+		</dependency>
+
+		<!-- Spring Security -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-security</artifactId>
+		</dependency>
+		<!-- Jackson for JSON -->
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-databind</artifactId>
+		</dependency>
+		<!-- Lombok (optional) -->
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<version>1.18.30</version>
+			<scope>provided</scope>
+		</dependency>
+		<!-- JWT (JJWT) -->
+		<dependency>
+			<groupId>io.jsonwebtoken</groupId>
+			<artifactId>jjwt-api</artifactId>
+			<version>${jjwt.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>io.jsonwebtoken</groupId>
+			<artifactId>jjwt-impl</artifactId>
+			<version>${jjwt.version}</version>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>io.jsonwebtoken</groupId>
+			<artifactId>jjwt-jackson</artifactId>
+			<version>${jjwt.version}</version>
+			<scope>runtime</scope>
+		</dependency>
+		<!-- DevTools (optional) -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-devtools</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+		<!-- Testing -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+		</plugins>
+	</build>
+
+</project>
+
+
+
+F:\cafe_management_0.1\cafe\src\main\java\com\example\cafe
+CafeApplication.java
+package com.example.cafe;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class CafeApplication {
+
+	public static void main(String[] args) {
+		SpringApplication.run(CafeApplication.class, args);
+	}
+
+}
+
+
+
+F:\cafe_management_0.1\cafe\src\main\java\com\example\cafe\config
+AppConfig.java
+// src/main/java/com/example/cafe/config/AppConfig.java
+package com.example.cafe.config;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.web.client.RestTemplate;
+
+@Configuration
+public class AppConfig {
+
+    @Bean
+    public RestTemplate restTemplate() {
+        return new RestTemplate();
+    }
+}
+
+
+CustomUserDetails.java
+package com.example.cafe.config;
+
+import com.example.cafe.model.User;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+
+import java.util.Collection;
+import java.util.Collections;
+
+public class CustomUserDetails implements UserDetails {
+
+    private final User user;
+
+    public CustomUserDetails(User user) {
+        this.user = user;
+    }
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return Collections.singletonList(new SimpleGrantedAuthority(user.getRole().name()));
+    }
+
+    @Override
+    public String getPassword() {
+        return user.getPassword();
+    }
+
+    @Override
+    public String getUsername() {
+        return user.getUsername();
+    }
+
+    // For simplicity, all following methods return true. Adjust as needed.
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+    @Override
+    public boolean isEnabled() {
+        return true;
+    }
+    public User getUser() {
+        return user;
+    }
+
+}
+
+
+CustomUserDetailsService.java
+package com.example.cafe.config;
+
+
+import com.example.cafe.model.User;
+import com.example.cafe.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.stereotype.Service;
+
+@Service
+public class CustomUserDetailsService implements UserDetailsService {
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+        return new CustomUserDetails(user);
+    }
+}
+
+
+JwtFilter.java
+package com.example.cafe.config;
+
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.web.filter.OncePerRequestFilter;
+
+import java.io.IOException;
+
+public class JwtFilter extends OncePerRequestFilter {
+
+    private final JwtUtil jwtUtil;
+    private final UserDetailsService userDetailsService;
+
+    public JwtFilter(JwtUtil jwtUtil, UserDetailsService userDetailsService) {
+        this.jwtUtil = jwtUtil;
+        this.userDetailsService = userDetailsService;
+    }
+
+    @Override
+    protected void doFilterInternal(HttpServletRequest request,
+                                    HttpServletResponse response,
+                                    FilterChain filterChain)
+            throws ServletException, IOException {
+
+        String contextPath = request.getContextPath();  // e.g., "" if deployed at root
+        String uri = request.getRequestURI();           // e.g., "/auth/login" or "/admin/..."
+
+        // Bypass JWT processing for public endpoints (/auth/** and /error)
+        if (uri.startsWith(contextPath + "/auth/") || uri.startsWith(contextPath + "/error")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        // Process the Authorization header if present
+        String authHeader = request.getHeader("Authorization");
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            String token = authHeader.substring(7);
+            String username = jwtUtil.extractUsername(token);
+            if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+                if (!jwtUtil.isTokenExpired(token)) {
+                    UsernamePasswordAuthenticationToken authToken =
+                            new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                    SecurityContextHolder.getContext().setAuthentication(authToken);
+                }
+            }
+        }
+        filterChain.doFilter(request, response);
+    }
+}
+
+
+JwtUtil.java
+package com.example.cafe.config;
+
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.security.Keys;
+import org.springframework.stereotype.Component;
+
+import java.security.Key;
+import java.util.Date;
+import java.util.function.Function;
+
+@Component
+public class JwtUtil {
+
+    // Generate a secure random key (256 bits) for HS256.
+    // In production, store and load this key from a secure location.
+    private final Key key = Keys.secretKeyFor(SignatureAlgorithm.HS256);
+
+    // Generate a JWT token using the provided username as the subject.
+    public String generateToken(String username) {
+        return Jwts.builder()
+                .setSubject(username)
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 10)) // Valid for 10 hours
+                .signWith(key)
+                .compact();
+    }
+
+    // Extract the username (subject) from the token.
+    public String extractUsername(String token) {
+        return extractClaim(token, Claims::getSubject);
+    }
+
+    // Check if the token has expired.
+    public boolean isTokenExpired(String token) {
+        return extractClaim(token, Claims::getExpiration).before(new Date());
+    }
+
+    // Extract a claim from the token using the provided claims resolver.
+    public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
+        final Claims claims = Jwts.parserBuilder()
+                .setSigningKey(key)
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+        return claimsResolver.apply(claims);
+    }
+}
+
+
+SecurityConfig.java
+package com.example.cafe.config;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.ProviderManager;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.List;
+
+@Configuration
+public class SecurityConfig {
+
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtFilter jwtFilter) throws Exception {
+        http
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .csrf(csrf -> csrf.disable())
+                .authorizeHttpRequests(auth -> auth
+                        // Allow preflight (OPTIONS) requests
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        // Allow public endpoints for auth and error handling
+                        .requestMatchers("/auth/**").permitAll()
+                        .requestMatchers("/api/**").permitAll()
+                        .requestMatchers("/error").permitAll()
+                        .requestMatchers("/admin/**").hasAuthority("ADMIN")
+                        .anyRequest().authenticated()
+                )
+                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+        return http.build();
+    }
+
+    @Bean
+    public JwtFilter jwtFilter(UserDetailsService userDetailsService, JwtUtil jwtUtil) {
+        return new JwtFilter(jwtUtil, userDetailsService);
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration config = new CorsConfiguration();
+        // Allow the React frontend running at http://localhost:3000
+        config.setAllowedOrigins(List.of("http://localhost:3000"));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        config.setAllowedHeaders(List.of("Authorization", "Content-Type"));
+        config.setAllowCredentials(true);
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+        return source;
+    }
+
+    @Bean
+    public AuthenticationManager authenticationManager(UserDetailsService userDetailsService) {
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
+        provider.setUserDetailsService(userDetailsService);
+        provider.setPasswordEncoder(passwordEncoder());
+        return new ProviderManager(List.of(provider));
+    }
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+}
+
+
+
+F:\cafe_management_0.1\cafe\src\main\java\com\example\cafe\controller
+AdminController.java
+package com.example.cafe.controller;
+
+import com.example.cafe.model.User;
+import com.example.cafe.service.UserService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/admin")
+public class AdminController {
+
+    @Autowired
+    private UserService userService;
+
+    // ADMIN: View all users
+    @GetMapping("/users")
+    public ResponseEntity<List<User>> getAllUsers() {
+        return ResponseEntity.ok(userService.getAllUsers());
+    }
+}
+
+
+FeedbackController.java
+package com.example.cafe.controller;
+
+import com.example.cafe.model.Feedback;
+import com.example.cafe.repository.FeedbackRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
+
+import java.util.List;
+import java.util.Map;
+
+@RestController
+@RequestMapping("/api/feedback")
+public class FeedbackController {
+
+    @Autowired
+    private FeedbackRepository feedbackRepository;
+
+    @Autowired
+    private RestTemplate restTemplate;
+
+    // Enable CORS for this specific method
+    @CrossOrigin(origins = "http://localhost:3000") // Frontend URL
+    @PostMapping("/submit")
+    public ResponseEntity<?> submitFeedback(@RequestBody Map<String, String> feedbackData) {
+        try {
+            String username = feedbackData.get("username");
+            String feedbackMessage = feedbackData.get("feedbackMessage");
+            String rating = feedbackData.get("rating");
+
+            // Call the Python microservice to get sentiment analysis
+            Map<String, String> requestBody = Map.of("review", feedbackMessage);
+            ResponseEntity<Map> response = restTemplate.postForEntity("http://localhost:5000/predict", requestBody, Map.class);
+            String sentiment = "Unknown";
+            if(response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
+                sentiment = (String) response.getBody().get("sentiment");
+            }
+
+            Feedback feedback = new Feedback();
+            feedback.setUsername(username);
+            feedback.setFeedbackMessage(feedbackMessage);
+            feedback.setRating(rating);
+            feedback.setCreatedAt(System.currentTimeMillis());
+            feedback.setSentiment(sentiment);
+
+            feedbackRepository.save(feedback);
+
+            return ResponseEntity.ok(Map.of("message", "Feedback submitted successfully", "sentiment", sentiment));
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(Map.of("error", "Error submitting feedback", "message", e.getMessage()));
+        }
+    }
+
+    // Get all feedback (global CORS applied)
+    @GetMapping("/all")
+    public ResponseEntity<List<Feedback>> getAllFeedback() {
+        try {
+            List<Feedback> feedbackList = feedbackRepository.findAll();
+            return ResponseEntity.ok(feedbackList);
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(null);
+        }
+    }
+}
+
+
+MenuController.java
+package com.example.cafe.controller;
+
+import com.example.cafe.model.MenuItem;
+import com.example.cafe.repository.MenuItemRepository;
+import com.example.cafe.service.MenuService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/menu")
+public class MenuController {
+
+    @Autowired
+    private MenuService menuService;
+    @Autowired
+    private MenuItemRepository menuItemRepository;
+
+    // Public: Browse menu items
+    @GetMapping
+    public ResponseEntity<List<MenuItem>> getMenuItems() {
+        return ResponseEntity.ok(menuService.getAllMenuItems());
+    }
+
+    // ADMIN: Add a new menu item
+    @PostMapping("/admin/add")
+    public ResponseEntity<MenuItem> addMenuItem(@RequestBody MenuItem item) {
+        return ResponseEntity.ok(menuService.addMenuItem(item));
+    }
+
+    // ADMIN: Update an existing menu item
+    @PutMapping("/admin/update/{id}")
+    public ResponseEntity<MenuItem> updateMenuItem(@PathVariable Long id, @RequestBody MenuItem item) {
+        return ResponseEntity.ok(menuService.updateMenuItem(id, item));
+    }
+
+    // ADMIN: Delete a menu item
+    @DeleteMapping("/admin/delete/{id}")
+    public ResponseEntity<?> deleteMenuItem(@PathVariable Long id) {
+        MenuItem menuItem = menuItemRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Menu item not found"));
+        menuItemRepository.delete(menuItem);  // This triggers the @SQLDelete
+        return ResponseEntity.ok("Menu item soft deleted successfully");
+    }
+    //ADMIN: Item Availability
+    @PutMapping("/admin/toggle-available/{id}")
+    public ResponseEntity<?> toggleMenuItemAvailability(@PathVariable Long id) {
+        menuService.toggleMenuItemAvailability(id);
+        return ResponseEntity.ok().build();
+    }
+}
+
+
+OrderAnalysisController.java
+// OrderAnalysisController.java
+package com.example.cafe.controller;
+
+import com.example.cafe.model.MenuItem;
+import com.example.cafe.model.OrderItem;
+import com.example.cafe.repository.OrderItemRepository;
+import com.example.cafe.repository.MenuItemRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+@RestController
+@RequestMapping("/api/orders")
+public class OrderAnalysisController {
+
+    @Autowired
+    private OrderItemRepository orderItemRepository;
+
+    @Autowired
+    private MenuItemRepository menuItemRepository;
+
+    @GetMapping("/best-selling-products")
+    public ResponseEntity<Map<String, Integer>> getBestSellingProducts() {
+        try {
+            List<OrderItem> orderItems = orderItemRepository.findAll();
+
+            // Create a map to store product counts
+            Map<String, Integer> productCounts = new HashMap<>();
+
+            for (OrderItem item : orderItems) {
+                String productName = item.getMenuItem().getName();
+                productCounts.put(productName, productCounts.getOrDefault(productName, 0) + item.getQuantity());
+            }
+
+            return ResponseEntity.ok(productCounts);
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(null);
+        }
+    }
+}
+
+
+OrderController.java
+package com.example.cafe.controller;
+
+import com.example.cafe.model.CafeOrder;
+import com.example.cafe.model.OrderStatus;
+import com.example.cafe.model.User;
+import com.example.cafe.service.OrderService;
+import com.example.cafe.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import java.security.Principal;
+import java.util.List;
+import java.util.Map;
+
+@RestController
+@RequestMapping("/api/orders")
+public class OrderController {
+
+    @Autowired
+    private OrderService orderService;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    // Customer: Place an order
+    @PostMapping("/place")
+    public ResponseEntity<CafeOrder> placeOrder(@RequestBody CafeOrder order, Principal principal) {
+        User user = userRepository.findByUsername(principal.getName())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        order.setUser(user);
+        return ResponseEntity.ok(orderService.placeOrder(order));
+    }
+
+    // Customer: View own orders
+    @GetMapping("/myorders")
+    public ResponseEntity<List<CafeOrder>> getMyOrders(Principal principal) {
+        User user = userRepository.findByUsername(principal.getName())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        return ResponseEntity.ok(orderService.getOrdersByUser(user));
+    }
+
+    // ADMIN: View all orders
+    @GetMapping("/admin/all")
+    public ResponseEntity<List<CafeOrder>> getAllOrders() {
+        try {
+            List<CafeOrder> orders = orderService.getAllOrders();
+            return ResponseEntity.ok(orders);
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(null); // Proper error response
+        }
+    }
+
+    // ADMIN: Update order status
+    @PutMapping("/admin/update/{orderId}")
+    public ResponseEntity<CafeOrder> updateOrderStatus(@PathVariable Long orderId, @RequestBody Map<String, String> request) {
+        OrderStatus status = OrderStatus.valueOf(request.get("status"));
+        return ResponseEntity.ok(orderService.updateOrderStatus(orderId, status));
+    }
+}
+
+
+UserController.java
+package com.example.cafe.controller;
+
+import com.example.cafe.config.JwtUtil;
+import com.example.cafe.model.Role;
+import com.example.cafe.model.User;
+import com.example.cafe.repository.UserRepository;
+import com.example.cafe.service.UserService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.bind.annotation.*;
+
+
+import java.util.Map;
+
+@RestController
+@RequestMapping("/auth")
+public class UserController {
+
+    @Autowired
+    private AuthenticationManager authenticationManager;
+
+    @Autowired
+    private JwtUtil jwtUtil;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
+
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@RequestBody Map<String, String> credentials) {
+        try {
+            String username = credentials.get("username");
+            String password = credentials.get("password");
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(username, password)
+            );
+            String token = jwtUtil.generateToken(username);
+            User user = userRepository.findByUsername(username)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+            return ResponseEntity.ok(Map.of(
+                    "token", token,
+                    "role", user.getRole().name()
+            ));
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return ResponseEntity.status(403).body(Map.of("error", "Authentication failed", "message", ex.getMessage()));
+        }
+    }
+
+
+    @PostMapping("/register")
+    public ResponseEntity<?> register(@RequestBody Map<String, String> userData) {
+        try {
+            String username = userData.get("username");
+            String password = userData.get("password");
+            String confirmPassword = userData.get("confirmPassword");
+            String email = userData.get("email");
+            String phone = userData.get("phone");
+            String gender = userData.get("gender");
+            String fullName = userData.get("fullName");
+
+            if (userRepository.findByUsername(username).isPresent()) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Username already exists."));
+            }
+
+            User newUser = new User();
+            newUser.setUsername(username);
+            newUser.setPassword(passwordEncoder.encode(password));
+            // Always set role to USER for registration.
+            newUser.setRole(Role.USER);
+            newUser.setEmail(email);
+            newUser.setPhone(phone);
+            newUser.setGender(gender);
+            newUser.setFullName(fullName);
+            userRepository.save(newUser);
+
+            return ResponseEntity.ok(Map.of("message", "User registered successfully."));
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return ResponseEntity.status(500).body(Map.of("error", "Registration failed", "message", ex.getMessage()));
+        }
+    }
+    @GetMapping("/profile")
+    public ResponseEntity<Map<String, Object>> getProfile(@RequestHeader("Authorization") String token) {
+        if (token != null && token.startsWith("Bearer ")) {
+            String username = jwtUtil.extractUsername(token.substring(7));
+            User user = userRepository.findByUsername(username)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+            return ResponseEntity.ok(Map.of(
+                    "id", user.getId(),
+                    "username", user.getUsername(),
+                    "email", user.getEmail(),
+                    "phone", user.getPhone(),
+                    "gender", user.getGender(),
+                    "fullName", user.getFullName()
+            ));
+        }
+        return ResponseEntity.status(403).body(Map.of("error", "Unauthorized"));
+    }
+    /**
+     * Update User Profile
+     */
+    @PutMapping("/profile/update")
+    public ResponseEntity<Map<String, String>> updateProfile(@RequestHeader("Authorization") String token,
+                                                             @RequestBody Map<String, String> userData) {
+        if (token != null && token.startsWith("Bearer ")) {
+            String username = jwtUtil.extractUsername(token.substring(7));
+            User user = userRepository.findByUsername(username)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+
+            // Update fields based on provided data
+            user.setEmail(userData.getOrDefault("email", user.getEmail()));
+            user.setPhone(userData.getOrDefault("phone", user.getPhone()));
+            user.setGender(userData.getOrDefault("gender", user.getGender()));
+            user.setFullName(userData.getOrDefault("fullName", user.getFullName()));
+
+            userRepository.save(user);
+            return ResponseEntity.ok(Map.of("message", "Profile updated successfully"));
+        }
+        return ResponseEntity.status(403).body(Map.of("error", "Unauthorized"));
+    }
+
+    /**
+     * Change Password
+     */
+    @PostMapping("/profile/change-password")
+    public ResponseEntity<Map<String, String>> changePassword(@RequestHeader("Authorization") String token,
+                                                              @RequestBody Map<String, String> passwordData) {
+        if (token != null && token.startsWith("Bearer ")) {
+            String username = jwtUtil.extractUsername(token.substring(7));
+            User user = userRepository.findByUsername(username)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+
+            String oldPassword = passwordData.get("oldPassword");
+            String newPassword = passwordData.get("newPassword");
+            String confirmPassword = passwordData.get("confirmPassword");
+
+            // Validate old password
+            if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Old password does not match"));
+            }
+
+            // Validate new password and confirm password
+            if (!newPassword.equals(confirmPassword)) {
+                return ResponseEntity.badRequest().body(Map.of("error", "New password and confirm password do not match"));
+            }
+
+            // Update password
+            user.setPassword(passwordEncoder.encode(newPassword));
+            userRepository.save(user);
+
+            return ResponseEntity.ok(Map.of("message", "Password changed successfully"));
+        }
+        return ResponseEntity.status(403).body(Map.of("error", "Unauthorized"));
+    }
+}
+
+
+
+F:\cafe_management_0.1\cafe\src\main\java\com\example\cafe\model
+CafeOrder.java
+package com.example.cafe.model;
+
+import jakarta.persistence.*;
+import java.math.BigDecimal;
+import java.util.Date;
+import java.util.List;
+import com.fasterxml.jackson.annotation.*;
+@Entity
+@Table(name = "orders")
+public class CafeOrder {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    // Many orders belong to one user
+    @ManyToOne
+    private User user;
+
+    private BigDecimal totalAmount;
+
+    @Enumerated(EnumType.STRING)
+    private OrderStatus status;
+
+    private Date orderDate;
+
+    // An order can have multiple order items
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL,orphanRemoval = true)
+    @JsonManagedReference
+    private List<OrderItem> items;
+
+    // Getters and setters
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+
+    public User getUser() { return user; }
+    public void setUser(User user) { this.user = user; }
+
+    public BigDecimal getTotalAmount() { return totalAmount; }
+    public void setTotalAmount(BigDecimal totalAmount) { this.totalAmount = totalAmount; }
+
+    public OrderStatus getStatus() { return status; }
+    public void setStatus(OrderStatus status) { this.status = status; }
+
+    public Date getOrderDate() { return orderDate; }
+    public void setOrderDate(Date orderDate) { this.orderDate = orderDate; }
+
+    public List<OrderItem> getItems() { return items; }
+    public void setItems(List<OrderItem> items) { this.items = items; }
+}
+
+
+Feedback.java
+// src/main/java/com/example/cafe/model/Feedback.java
+package com.example.cafe.model;
+
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@Entity
+@Table(name = "feedback")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+public class Feedback {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(nullable = false)
+    private String username;
+
+    @Column(nullable = false)
+    private String feedbackMessage;
+
+    @Column(nullable = true)
+    private String rating;  // You can store rating as a string, or use an enum
+
+    @Column(nullable = false)
+    private Long createdAt;
+
+    // New field to store sentiment analysis result (e.g., "Positive", "Negative", "Neutral")
+    @Column(nullable = true)
+    private String sentiment;
+}
+
+
+MenuItem.java
+package com.example.cafe.model;
+
+import jakarta.persistence.*;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.Where;
+import java.math.BigDecimal;
+
+@Entity
+@Table(name = "menu_items")
+@SQLDelete(sql = "UPDATE menu_items SET active = false WHERE id = ?")
+@Where(clause = "active = true")
+public class MenuItem {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String name;
+
+    private String description;
+
+    private BigDecimal price;
+
+    private String imageUrl;
+
+    // This field is used for item availability (e.g., in stock or not)
+    private boolean available = true;
+
+    // New field for soft deletion: active=true means the record is not deleted.
+    private boolean active = true;
+
+    // Constructors
+    public MenuItem() {}
+
+    public MenuItem(String name, String description, BigDecimal price, String imageUrl) {
+        this.name = name;
+        this.description = description;
+        this.price = price;
+        this.imageUrl = imageUrl;
+        this.available = true;
+        this.active = true;
+    }
+
+    // Getters and setters
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public BigDecimal getPrice() {
+        return price;
+    }
+
+    public void setPrice(BigDecimal price) {
+        this.price = price;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
+    }
+
+    public boolean isAvailable() {
+        return available;
+    }
+
+    public void setAvailable(boolean available) {
+        this.available = available;
+    }
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
+    }
+}
+
+
+OrderItem.java
+package com.example.cafe.model;
+
+import jakarta.persistence.*;
+import java.math.BigDecimal;
+import com.fasterxml.jackson.annotation.*;
+@Entity
+@Table(name = "order_items")
+public class OrderItem {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @ManyToOne
+    @JoinColumn(name = "order_id")
+    @JsonBackReference
+    private CafeOrder order;
+
+    @ManyToOne
+    @JoinColumn(name = "menu_item_id")
+    private MenuItem menuItem;
+
+    private int quantity;
+    private BigDecimal price; // Price at the time of ordering
+
+    // Getters and setters
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+
+    public CafeOrder getOrder() { return order; }
+    public void setOrder(CafeOrder order) { this.order = order; }
+
+    public MenuItem getMenuItem() { return menuItem; }
+    public void setMenuItem(MenuItem menuItem) { this.menuItem = menuItem; }
+
+    public int getQuantity() { return quantity; }
+    public void setQuantity(int quantity) { this.quantity = quantity; }
+
+    public BigDecimal getPrice() { return price; }
+    public void setPrice(BigDecimal price) { this.price = price; }
+}
+
+
+OrderStatus.java
+package com.example.cafe.model;
+
+public enum OrderStatus {
+    PENDING,
+    COMPLETED,
+    CANCELED
+}
+
+
+Role.java
+package com.example.cafe.model;
+
+public enum Role {
+    USER, ADMIN
+}
+
+
+User.java
+package com.example.cafe.model;
+
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@Entity
+@Table(name = "users")
+@Getter @Setter
+@NoArgsConstructor @AllArgsConstructor
+public class User {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(unique = true, nullable = false)
+    private String username;
+
+    @Column(nullable = false)
+    private String password;
+
+    @Enumerated(EnumType.STRING)
+    private Role role;
+    private String email;
+
+    private String phone;
+
+    private String gender;
+
+    private String fullName;
+
+}
+
+
+
+F:\cafe_management_0.1\cafe\src\main\java\com\example\cafe\repository
+CafeOrderRepository.java
+package com.example.cafe.repository;
+
+import com.example.cafe.model.CafeOrder;
+import com.example.cafe.model.User;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+import java.util.List;
+import org.springframework.data.jpa.repository.Query;
+
+@Repository
+public interface CafeOrderRepository extends JpaRepository<CafeOrder, Long> {
+    List<CafeOrder> findByUser(User user);
+    @Query("SELECT o FROM CafeOrder o JOIN FETCH o.items")
+    List<CafeOrder> findAllWithItems();
+}
+
+
+FeedbackRepository.java
+// src/main/java/com/example/cafe/repository/FeedbackRepository.java
+package com.example.cafe.repository;
+
+import com.example.cafe.model.Feedback;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+@Repository
+public interface FeedbackRepository extends JpaRepository<Feedback, Long> {
+}
+
+
+MenuItemRepository.java
+package com.example.cafe.repository;
+
+import com.example.cafe.model.MenuItem;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+@Repository
+public interface MenuItemRepository extends JpaRepository<MenuItem, Long> {
+}
+
+
+OrderItemRepository.java
+package com.example.cafe.repository;
+
+import com.example.cafe.model.OrderItem;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+@Repository
+public interface OrderItemRepository extends JpaRepository<OrderItem, Long> {
+}
+
+
+UserRepository.java
+package com.example.cafe.repository;
+
+import com.example.cafe.model.User;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+import java.util.Optional;
+
+@Repository
+public interface UserRepository extends JpaRepository<User, Long> {
+    Optional<User> findByUsername(String username);
+}
+
+
+
+F:\cafe_management_0.1\cafe\src\main\java\com\example\cafe\service
+MenuService.java
+package com.example.cafe.service;
+
+import com.example.cafe.model.MenuItem;
+import com.example.cafe.repository.MenuItemRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import java.util.List;
+
+@Service
+public class MenuService {
+
+    @Autowired
+    private MenuItemRepository menuItemRepository;
+
+    public MenuItem addMenuItem(MenuItem item) {
+        return menuItemRepository.save(item);
+    }
+
+    public MenuItem updateMenuItem(Long id, MenuItem updatedItem) {
+        MenuItem existing = menuItemRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Menu item not found"));
+        existing.setName(updatedItem.getName());
+        existing.setDescription(updatedItem.getDescription());
+        existing.setPrice(updatedItem.getPrice());
+        existing.setImageUrl(updatedItem.getImageUrl());
+        existing.setAvailable(updatedItem.isAvailable());
+        return menuItemRepository.save(existing);
+    }
+
+    public void deleteMenuItem(Long id) {
+        menuItemRepository.deleteById(id);
+    }
+
+    public List<MenuItem> getAllMenuItems() {
+        return menuItemRepository.findAll();
+    }
+    public void toggleMenuItemAvailability(Long id) {
+        MenuItem item = menuItemRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Menu item not found"));
+        item.setAvailable(!item.isAvailable());
+        menuItemRepository.save(item);
+    }
+}
+
+
+OrderService.java
+package com.example.cafe.service;
+
+import com.example.cafe.model.CafeOrder;
+import com.example.cafe.model.MenuItem;
+import com.example.cafe.model.OrderItem;
+import com.example.cafe.model.OrderStatus;
+import com.example.cafe.model.User;
+import com.example.cafe.repository.CafeOrderRepository;
+import com.example.cafe.repository.MenuItemRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+@Service
+public class OrderService {
+
+    @Autowired
+    private CafeOrderRepository orderRepository;
+
+    @Autowired
+    private MenuItemRepository menuItemRepository; // Added
+
+    public CafeOrder placeOrder(CafeOrder order) {
+        order.setOrderDate(new Date());
+        order.setStatus(OrderStatus.PENDING);
+
+        List<OrderItem> processedItems = new ArrayList<>();
+        for (OrderItem item : order.getItems()) {
+            MenuItem menuItem = menuItemRepository.findById(item.getMenuItem().getId())
+                    .orElseThrow(() -> new RuntimeException("Menu item not found"));
+
+            OrderItem processedItem = new OrderItem();
+            processedItem.setMenuItem(menuItem);
+            processedItem.setQuantity(item.getQuantity());
+            processedItem.setPrice(menuItem.getPrice()); // Use current price
+            processedItem.setOrder(order);
+            processedItems.add(processedItem);
+        }
+
+        order.setItems(processedItems);
+        order.setTotalAmount(processedItems.stream()
+                .map(i -> i.getPrice().multiply(BigDecimal.valueOf(i.getQuantity())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add));
+
+        return orderRepository.save(order);
+    }
+
+    // Other methods remain unchanged
+    public List<CafeOrder> getAllOrders() {
+        return orderRepository.findAllWithItems(); // Use the new method
+    }
+
+    public List<CafeOrder> getOrdersByUser(User user) {
+        return orderRepository.findByUser(user);
+    }
+
+    public CafeOrder updateOrderStatus(Long orderId, OrderStatus status) {
+        CafeOrder order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found"));
+        order.setStatus(status);
+        return orderRepository.save(order);
+    }
+}
+
+
+UserService.java
+package com.example.cafe.service;
+
+import com.example.cafe.model.User;
+import com.example.cafe.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+@Service
+public class UserService {
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
+    // Method to update user profile
+    public void updateUserProfile(User currentUser, User updatedUser) {
+        currentUser.setFullName(updatedUser.getFullName());
+        currentUser.setEmail(updatedUser.getEmail());
+        currentUser.setPhone(updatedUser.getPhone());
+        currentUser.setGender(updatedUser.getGender());
+        userRepository.save(currentUser);
+    }
+
+    // Method to change user password
+    public void changePassword(User user, String oldPassword, String newPassword) throws Exception {
+        if (passwordEncoder.matches(oldPassword, user.getPassword())) {
+            user.setPassword(passwordEncoder.encode(newPassword));
+            userRepository.save(user);
+        } else {
+            throw new Exception("Old password is incorrect");
+        }
+    }
+    public List<User> getAllUsers() {
+        return userRepository.findAll();
+    }
+}
+
+
+
+F:\cafe_management_0.1\cafe\src\main\resources
+application.properties
+spring.application.name=cafe
+
+server.port=8081
+
+# MySQL configuration ? update with your actual credentials
+spring.datasource.url=jdbc:mysql://localhost:3306/kyawgyi_cafe?useSSL=false&serverTimezone=UTC
+spring.datasource.username=root
+spring.datasource.password=
+spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.MySQL8Dialect
+spring.jpa.show-sql=true
+# JWT settings
+jwt.secret=MyJwtSecretKey
+logging.level.org.springframework.security=DEBUG
+
+
+
+
+F:\cafe_management_0.1\cafe_frontend\src
+App.js
+// src/App.js
+import React, { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import LoginSignup from './components/LoginSignup';
+import AdminDashboard from './components/AdminDashboard/AdminDashboard';
+import CustomerDashboard from './components/CustomerDashboard/CustomerDashboard';
+import CustomerLanding from "./components/CustomerLanding";
+import './index.css';
+
+function App() {
+    const [token, setToken] = useState(localStorage.getItem('token') || '');
+
+    useEffect(() => {
+        if (token) {
+            localStorage.setItem('token', token);
+        }
+    }, [token]);
+
+    // Protected route wrapper to redirect if not logged in
+    const ProtectedRoute = ({ children }) => {
+        return token ? children : <Navigate to="/" />;
+    };
+
+    return (
+        <Router>
+            <Routes>
+                <Route path="/" element={<CustomerLanding />} />
+                <Route path="/login" element={<LoginSignup setToken={setToken} />} />
+                <Route
+                    path="/admin"
+                    element={
+                        <ProtectedRoute>
+                            <AdminDashboard token={token} />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/dashboard"
+                    element={
+                        <ProtectedRoute>
+                            <CustomerDashboard token={token} />
+                        </ProtectedRoute>
+                    }
+                />
+            </Routes>
+        </Router>
+    );
+}
+
+export default App;
+
+
+index.js
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import './index.css';
+import App from './App';
+import reportWebVitals from './reportWebVitals';
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
+);
+
+// If you want to start measuring performance in your app, pass a function
+// to log results (for example: reportWebVitals(console.log))
+// or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
+reportWebVitals();
+
+
+
+F:\cafe_management_0.1\cafe_frontend\src\components
+CustomerLanding.js
+// src/pages/CustomerLanding.js
+import { FaCoffee, FaUtensils, FaRegClock } from 'react-icons/fa';
+import { GiTakeMyMoney } from 'react-icons/gi'
+
+const CustomerLanding = () => {
+    return (
+        <div className="min-h-screen bg-gradient-to-b from-yellow-300 to-white">
+            <header className="py-6 px-4 shadow-md">
+                <div className="max-w-7xl mx-auto flex items-center justify-between">
+                    <h1 className="text-3xl font-extrabold text-gray-800">
+                        <FaCoffee className="inline-block mr-2 text-4xl text-brown-600" />
+                        KyawGyiCafé
+                    </h1>
+                    <nav className="hidden md:flex space-x-6">
+                        <a href="#features" className="text-gray-600 hover:text-gray-800 transition">
+                            Features
+                        </a>
+                        <a href="#testimonials" className="text-gray-600 hover:text-gray-800 transition">
+                            Testimonials
+                        </a>
+                    </nav>
+                    <button
+                        className="hidden md:block px-6 py-3 bg-brown-600 text-white rounded-full hover:bg-brown-700 transition"
+                        onClick={() => window.location.href = '/login'}
+                    >
+                        Login
+                    </button>
+                </div>
+            </header>
+
+            <main className="max-w-7xl mx-auto px-4 py-12">
+                <section className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-12">
+                    {/* Hero Section */}
+                    <div className="space-y-8">
+                        <h1 className="text-5xl font-extrabold text-gray-800">
+                            Enjoy Your Favorite Brew <br /> Anytime, Anywhere
+                        </h1>
+                        <p className="text-gray-600 max-w-md">
+                            Experience the perfect blend of convenience and quality with our café management system.
+                        </p>
+                        <div className="flex space-x-4">
+                            <button
+                                className="bg-brown-600 text-white px-8 py-4 rounded-full hover:bg-brown-700 transition"
+                                onClick={() => window.location.href = '/login'}
+                            >
+                                Start Ordering
+                            </button>
+                            {/*<button*/}
+                            {/*    className="bg-white text-gray-600 border border-gray-300 px-6 py-3 rounded-full hover:border-gray-400 transition"*/}
+                            {/*    onClick={() => window.location.href = '/login'}*/}
+                            {/*>*/}
+                            {/*    Create Account*/}
+                            {/*</button>*/}
+                        </div>
+                    </div>
+
+                    {/* Hero Image */}
+                    <div className="relative">
+                        <div
+                            className="bg-cover bg-center rounded-2xl shadow-2xl"
+                            style={{
+                                backgroundImage: 'url(/cafe-hero.jpg)',
+                                width: '100%',
+                                height: '350px',
+                            }}
+                        >
+                            <div className="absolute inset-0 bg-black opacity-10"></div>
+                            <div className="absolute inset-0 flex items-center justify-center text-white">
+                                <div className="max-w-md space-y-4">
+                                    <h2 className="text-3xl font-bold">Savor the Moment</h2>
+                                    <p className="text-lg">Order ahead - Enjoy your brew instantly</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                {/* Features Section */}
+                <section id="features" className="mt-20 pb-12 border-b border-gray-200">
+                    <h2 className="text-3xl font-bold text-gray-800 mb-8 text-center">
+                        Why Choose KyawGyiCafé?
+                    </h2>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        <div className="p-6 bg-white rounded-lg shadow hover:shadow-lg transition">
+                            <FaUtensils className="text-brown-600 text-3xl mb-4" />
+                            <h3 className="font-semibold text-gray-800 mb-2">Contactless Ordering</h3>
+                            <p className="text-gray-600">Order from your favorite café directly from your phone</p>
+                        </div>
+                        <div className="p-6 bg-white rounded-lg shadow hover:shadow-lg transition">
+                            <FaRegClock className="text-brown-600 text-3xl mb-4" />
+                            <h3 className="font-semibold text-gray-800 mb-2">Real-Time Tracking</h3>
+                            <p className="text-gray-600">See your order progress in real time</p>
+                        </div>
+                        <div className="p-6 bg-white rounded-lg shadow hover:shadow-lg transition">
+                            <GiTakeMyMoney className="text-brown-600 text-3xl mb-4" />
+                            <h3 className="font-semibold text-gray-800 mb-2">Seamless Payments</h3>
+                            <p className="text-gray-600">Pay effortlessly with multiple options</p>
+                        </div>
+                    </div>
+                </section>
+
+                {/* Testimonials Section */}
+                <section id="testimonials" className="mt-20 pb-12">
+                    <div className="max-w-md mx-auto md:max-w-lg">
+                        <div className="bg-white rounded-2xl p-8 shadow-lg">
+                            <div className="flex items-center mb-6">
+                                <img
+                                    src="/customer-avatar.jpg"
+                                    alt="Avatar"
+                                    className="w-12 h-12 rounded-full mr-4"
+                                />
+                                <div>
+                                    <h4 className="text-lg font-medium text-gray-800">Sarah M.</h4>
+                                    <p className="text-sm text-gray-500">Regular Customer</p>
+                                </div>
+                            </div>
+                            <p className="text-gray-600 italic">
+                                "Finally a system that makes my morning coffee ritual stress-free!"
+                            </p>
+                        </div>
+                    </div>
+                </section>
+            </main>
+
+            {/* Floating Action Button */}
+            <div className="fixed bottom-8 right-8 md:hidden">
+                <button
+                    className="w-14 h-14 bg-brown-600 text-white rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition"
+                    onClick={() => window.location.href = '/login'}
+                >
+                    →
+                </button>
+            </div>
+
+            <footer className="bg-white py-6 mt-12">
+                <div className="max-w-7xl mx-auto text-center text-gray-500">
+                    <p>© 2025 KyawGyiCafé. All rights reserved.</p>
+                    <div className="flex justify-center space-x-4 mt-4">
+                        <a href="#" className="text-gray-600 hover:text-gray-800 transition">
+                            Privacy Policy
+                        </a>
+                        <a href="#" className="text-gray-600 hover:text-gray-800 transition">
+                            Terms of Service
+                        </a>
+                    </div>
+                </div>
+            </footer>
+        </div>
+    );
+};
+
+export default CustomerLanding;
+
+
+LoginSignup.js
+import React, { useState } from 'react';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
+
+const LoginSignup = ({ setToken }) => {
+    const [isLogin, setIsLogin] = useState(true);
+    const [username, setUsername] = useState('');
+    const [password, setPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
+    const [email, setEmail] = useState('');
+    const [phone, setPhone] = useState('');
+    const [fullName, setFullName] = useState('');
+    const [gender, setGender] = useState('');
+    const [errorMessage, setErrorMessage] = useState('');
+    const navigate = useNavigate();
+
+    const validatePassword = (password) => {
+        const regex = /^(?=.*[A-Z])(?=.*\d)[A-Za-z\d]{6,}$/;
+        return regex.test(password);
+    };
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        if (!isLogin && password !== confirmPassword) {
+            setErrorMessage('Passwords do not match');
+            return;
+        }
+        if (!isLogin && !validatePassword(password)) {
+            setErrorMessage('Password must be at least 6 characters long, contain 1 capital letter, and 1 number');
+            return;
+        }
+
+        const url = isLogin ? 'http://localhost:8081/auth/login' : 'http://localhost:8081/auth/register';
+        const requestData = isLogin
+            ? { username, password }
+            : { username, password, confirmPassword, email, phone, fullName, gender };
+
+        axios.post(url, requestData)
+            .then((response) => {
+                if (isLogin) {
+                    const { token, role } = response.data;
+                    localStorage.setItem('token', token);
+                    localStorage.setItem('username', username);
+                    localStorage.setItem('role', role);
+                    setToken(token);
+                    if (role === 'ADMIN') {
+                        navigate('/admin');
+                    } else {
+                        navigate('/dashboard');
+                    }
+                } else {
+                    alert('Registration successful. Please login.');
+                    setIsLogin(true);
+                }
+            })
+            .catch((error) => {
+                if (error.response) {
+                    setErrorMessage(error.response.data.message || 'Authentication error');
+                } else {
+                    setErrorMessage('Network error or server unreachable');
+                }
+                alert('Authentication error');
+            });
+    };
+
+    return (
+
+        <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+            <div className="bg-white p-8 rounded-md shadow-lg w-96">
+                <h2 className="text-2xl font-bold text-gray-700 text-center mb-6">{isLogin ? 'Login' : 'Sign Up'}</h2>
+                <form onSubmit={handleSubmit} className="space-y-4">
+                    {/* Username Field */}
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700">Username:</label>
+                        <input
+                            type="text"
+                            value={username}
+                            onChange={(e) => setUsername(e.target.value)}
+                            required
+                            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm"
+                        />
+                    </div>
+                    {/* Password Field */}
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700">Password:</label>
+                        <input
+                            type="password"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            required
+                            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm"
+                        />
+                    </div>
+                    {/* Confirm Password & Additional Fields for Signup */}
+                    {!isLogin && (
+                        <>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700">Confirm Password:</label>
+                                <input
+                                    type="password"
+                                    value={confirmPassword}
+                                    onChange={(e) => setConfirmPassword(e.target.value)}
+                                    required
+                                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700">Email:</label>
+                                <input
+                                    type="email"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    required
+                                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700">Phone Number:</label>
+                                <input
+                                    type="text"
+                                    value={phone}
+                                    onChange={(e) => setPhone(e.target.value)}
+                                    required
+                                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700">Full Name:</label>
+                                <input
+                                    type="text"
+                                    value={fullName}
+                                    onChange={(e) => setFullName(e.target.value)}
+                                    required
+                                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700">Gender:</label>
+                                <select
+                                    value={gender}
+                                    onChange={(e) => setGender(e.target.value)}
+                                    required
+                                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm"
+                                >
+                                    <option value="">Select Gender</option>
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                        </>
+                    )}
+                    {errorMessage && <p className="text-red-500 text-sm mt-2">{errorMessage}</p>}
+                    <button type="submit" className="w-full bg-blue-500 hover:bg-blue-600 text-white font-medium px-4 py-2 rounded-md">
+                        {isLogin ? 'Login' : 'Sign Up'}
+                    </button>
+                </form>
+                <div className="mt-4 text-center">
+                    <button onClick={() => setIsLogin(!isLogin)} className="text-blue-500 hover:underline">
+                        {isLogin ? 'Need to sign up?' : 'Already have an account? Login'}
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+export default LoginSignup;
+
+
+
+F:\cafe_management_0.1\cafe_frontend\src\components\AdminDashboard
+AdminDashboard.js
+import React, { useState, useEffect } from 'react';
+import { Sun, Moon } from 'react-feather'; // For theme toggle
+import ManageMenu from './ManageMenu';
+import ManageOrders from './ManageOrders';
+import ViewUsers from './ViewUsers';
+import ManageFeedback from './ManageFeedback';
+import SentimentAnalysisPage from "./SentimentAnalysisPage";
+import BestSellingProducts from "./BestSellingProducts";
+import { useNavigate } from 'react-router-dom';
+
+const AdminDashboard = ({ token }) => {
+    const [activeTab, setActiveTab] = useState('menu');
+    const [theme, setTheme] = useState(localStorage.getItem('theme') || 'light');
+    const navigate = useNavigate();
+
+    // Dark mode management
+    useEffect(() => {
+        const root = document.documentElement;
+        root.style.setProperty('--primary-bg', theme === 'light' ? '#f8f9fa' : '#1a1a1a');
+        root.style.setProperty('--primary-text', theme === 'light' ? '#212529' : '#e9ecef');
+        root.style.setProperty('--accent-color', '#3B82F6');
+        localStorage.setItem('theme', theme);
+    }, [theme]);
+
+    const toggleTheme = () => {
+        setTheme(prevTheme => (prevTheme === 'light' ? 'dark' : 'light'));
+    };
+
+    const handleLogout = () => {
+        localStorage.removeItem('token');
+        localStorage.removeItem('username');
+        localStorage.removeItem('role');
+        navigate('/');
+    };
+
+    return (
+        <div className="min-h-screen bg-[var(--primary-bg)] text-[var(--primary-text)] transition-all duration-300">
+            {/* Sidebar */}
+            <aside className="fixed top-0 left-0 z-50 w-80 h-screen bg-[var(--primary-bg)] shadow-xl pt-6 pb-4">
+                <div className="px-4 mb-6 flex items-center justify-between">
+                    {/*<img src="/logo.png" alt="Admin Logo" className="h-12 w-auto" />*/}
+                    <h2 className="text-[var(--primary-text)] text-2xl mb-4">Admin Dashboard</h2>
+                    <button onClick={toggleTheme} className="p-2 rounded-full hover:[var(--primary-bg)]">
+                        {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
+                    </button>
+                    <button
+                        onClick={handleLogout}
+                        className="p-2 rounded-full hover:bg-red-600 text-red-500 hover:text-white transition"
+                    >Logout</button>
+                </div>
+
+                <nav className="space-y-2 px-4">
+                    <button
+                        onClick={() => setActiveTab('menu')}
+                        className={`flex items-center p-3 rounded-lg ${activeTab === 'menu' ? 'bg-[var(--accent-color)] text-white' : 'hover:bg-[var(--primary-bg)]'}`}
+                    >
+                        <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                        </svg>
+                        Menu Items
+                    </button>
+
+                    <button
+                        onClick={() => setActiveTab('orders')}
+                        className={`flex items-center p-3 rounded-lg ${activeTab === 'orders' ? 'bg-[var(--accent-color)] text-white' : 'hover:bg-[var(--primary-bg)]'}`}
+                    >
+                        <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.41.771A24.972 24.972 0 0114.354 1M21 12a9 9 0 11-18 0 9 9 0 0118 0zM3 3h.001M21 3h-.001M3 3C2.447 3 2 3.448 2 4v14c0 .552.447 1 1 1h18c.553 0 1-.448 1-1V4c0-.552-.447-1-1-1h-.001z" />
+                        </svg>
+                        Orders
+                    </button>
+
+                    <button
+                        onClick={() => setActiveTab('users')}
+                        className={`flex items-center p-3 rounded-lg ${activeTab === 'users' ? 'bg-[var(--accent-color)] text-white' : 'hover:bg-[var(--primary-bg)]'}`}
+                    >
+                        <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-3 9 9 0 01-3 12 9 9 0 019 3h3V21z" />
+                        </svg>
+                        Users
+                    </button>
+
+                    <button
+                        onClick={() => setActiveTab('feedback')}
+                        className={`flex items-center p-3 rounded-lg ${activeTab === 'feedback' ? 'bg-[var(--accent-color)] text-white' : 'hover:bg-[var(--primary-bg)]'}`}
+                    >
+                        <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-5 0a5 5 0 1110 0 5 5 0 01-10 0z" />
+                        </svg>
+                        Feedback
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('sentiment')}
+                        className={`flex items-center p-3 rounded-lg ${activeTab === 'sentiment' ? 'bg-[var(--accent-color)] text-white' : 'hover:bg-[var(--primary-bg)]'}`}
+                    >
+                        <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-5 0a5 5 0 1110 0 5 5 0 01-10 0z" />
+                        </svg>
+                        Sentiment Analysis
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('bestselling')}
+                        className={`flex items-center p-3 rounded-lg ${activeTab === 'bestselling' ? 'bg-[var(--accent-color)] text-white' : 'hover:bg-[var(--primary-bg)]'}`}
+                    >
+                        <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-5 0a5 5 0 1110 0 5 5 0 01-10 0z" />
+                        </svg>
+                        Best Selling Products Analysis
+                    </button>
+                </nav>
+            </aside>
+
+            {/* Main Content */}
+            <main className="ml-64 px-8 py-10">
+
+                <div className="p-6 bg-[var(--primary-bg)] rounded-2xl shadow-lg">
+                    {/*<h1 className="text-2xl font-bold mb-4">Dashboard</h1>*/}
+                    {activeTab === 'menu' && <ManageMenu token={token} />}
+                    {activeTab === 'orders' && <ManageOrders token={token} />}
+                    {activeTab === 'users' && <ViewUsers token={token} />}
+                    {activeTab === 'feedback' && <ManageFeedback token={token} />}
+                    {activeTab === 'sentiment' && <SentimentAnalysisPage token={token} />}
+                    {activeTab === 'bestselling' && <BestSellingProducts token={token} />}
+                </div>
+            </main>
+        </div>
+    );
+};
+
+export default AdminDashboard;
+
+
+BestSellingProducts.js
+import React, { useState, useEffect } from 'react';
+import { Pie } from 'react-chartjs-2';
+import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
+import axios from 'axios';
+
+ChartJS.register(ArcElement, Tooltip, Legend);
+
+const BestSellingProducts = ({ token }) => {
+    const [productData, setProductData] = useState([]);
+    const [productCounts, setProductCounts] = useState({});
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
+
+    useEffect(() => {
+        const fetchData = async () => {
+            setLoading(true);
+            try {
+                const response = await axios.get(
+                    'http://localhost:8081/api/orders/best-selling-products',
+                    {
+                        headers: { Authorization: `Bearer ${token}` },
+                    }
+                );
+                const counts = response.data;
+                setProductCounts(counts);
+                setProductData(
+                    Object.entries(counts).map(([product, value]) => ({
+                        label: product,
+                        value: value,
+                    }))
+                );
+                setLoading(false);
+            } catch (err) {
+                setError('Failed to retrieve sales data');
+                setLoading(false);
+                console.error('Error fetching best-selling products:', err);
+            }
+        };
+
+        fetchData();
+    }, [token]);
+
+    const data = {
+        labels: productData.map((item) => item.label),
+        datasets: [
+            {
+                data: productData.map((item) => item.value),
+                backgroundColor: [
+                    // 'var(--accent-color)',
+                    '#FFA726',
+                    '#FF6D00',
+                    '#EF5350',
+                    '#AB47BC',
+                    '#5C6BC0',
+                    '#29B6F6',
+                    '#26A69A',
+                ],
+                hoverOffset: 8,
+                borderWidth: 1,
+                borderColor: '#fff',
+            },
+        ],
+    };
+
+    const options = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'right',
+                labels: {
+                    font: { size: 14 },
+                    // color: 'var(--text-color)',
+                },
+            },
+        },
+        animation: { duration: 1000 },
+    };
+
+    return (
+        <div className="container mx-auto p-8 max-w-4xl">
+            {error && (
+                <div className="bg-red-100 text-red-700 p-4 rounded mb-4 dark:bg-red-800 dark:text-red-300">
+                    ❌ {error}
+                </div>
+            )}
+
+            <h2 className="text-3xl font-bold mb-6 text-center text-[var(--primary-text)]">
+                Best Selling Products
+            </h2>
+
+            {loading ? (
+                <div className="flex justify-center items-center mt-12">
+                    <svg className="animate-spin h-10 w-10 text-blue-500 dark:text-blue-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v1a7 7 0 00-7 7h1z"></path>
+                    </svg>
+                </div>
+            ) : (
+                <>
+                    <div className="rounded-lg shadow-lg p-6 bg-[var(--primary-bg)] mb-8">
+                        <Pie data={data} options={options} height={400} />
+                    </div>
+
+                    <div className="bg-[var(--primary-bg)] rounded-lg shadow p-6">
+                        <h3 className="text-lg font-medium mb-4">Top Products by Sales</h3>
+                        <table className="w-full">
+                            <thead className="bg-[var(--primary-bg)]">
+                            <tr>
+                                <th className="px-4 py-2 text-left text-[var(--primary-text)]">Product</th>
+                                <th className="px-4 py-2 text-left text-[var(--primary-text)]">Orders</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {productData.map((product) => (
+                                <tr
+                                    key={product.label}
+                                    className="hover:bg-[var(--primary-bg)] transition"
+                                >
+                                    <td className="px-4 py-2">{product.label}</td>
+                                    <td className="px-4 py-2 font-medium">
+                                        {product.value} orders
+                                    </td>
+                                </tr>
+                            ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </>
+            )}
+        </div>
+    );
+};
+
+export default BestSellingProducts;
+
+
+ManageFeedback.js
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+
+const ManageFeedback = ({ token }) => {
+    const [feedbackList, setFeedbackList] = useState([]);
+    const [error, setError] = useState('');
+
+    useEffect(() => {
+        const fetchFeedback = async () => {
+            try {
+                const response = await axios.get('http://localhost:8081/api/feedback/all', {
+                    headers: { 'Authorization': `Bearer ${token}` },
+                });
+                setFeedbackList(response.data);
+            } catch (err) {
+                setError('Error fetching feedback');
+                console.error(err);
+            }
+        };
+        fetchFeedback();
+    }, [token]);
+
+    return (
+        <div className="bg-[var(--primary-bg)]  rounded-lg shadow-md p-6 mt-10">
+            <h2 className="text-[var(--primary-text)] text-2xl mb-4">Customer Feedback</h2>
+            {error && (
+                <div className="bg-red-100 text-red-600 p-4 rounded-lg mb-4">
+                    <p>{error}</p>
+                </div>
+            )}
+            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                <thead>
+                <tr>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        ID
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Username
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Feedback
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Rating
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Sentiment
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Date
+                    </th>
+                </tr>
+                </thead>
+                <tbody className="bg-[var(--primary-bg)]  divide-y divide-gray-200 dark:divide-gray-700">
+                {feedbackList.map((feedback) => (
+                    <tr key={feedback.id} className="hover:bg-[var(--primary-bg)] ">
+                        <td className="px-6 py-4 whitespace-nowrap">
+                            {feedback.id}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                            {feedback.username}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                            {feedback.feedbackMessage}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="flex items-center">
+                                {[...Array(5)].map((_, index) => (
+                                    <svg
+                                        key={index}
+                                        className={`w-4 h-4 ${index < feedback.rating ? 'text-yellow-500' : 'text-gray-300'}`}
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        viewBox="0 0 20 20"
+                                        fill="currentColor"
+                                    >
+                                        <path d="M9.029 13.872l3.403 3.403a1 1 0 11-1.414 1.414l-3.403-3.403a1 1 0 010-1.414l3.403-3.403a1 1 0 011.414 0l3.403 3.403a1 1 0 010 1.414l-3.403 3.403a1 1 0 01-1.414-1.414L9.029 13.872z" />
+                                    </svg>
+                                ))}
+                            </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                            {feedback.sentiment}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                            {new Date(feedback.createdAt).toLocaleString()}
+                        </td>
+                    </tr>
+                ))}
+                </tbody>
+            </table>
+        </div>
+    );
+};
+
+export default ManageFeedback;
+
+
+ManageMenu.js
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+
+const ManageMenu = ({ token }) => {
+    const [menuItems, setMenuItems] = useState([]);
+    const [newItem, setNewItem] = useState({
+        name: '',
+        description: '',
+        price: '',
+        imageUrl: '',
+        available: true,
+    });
+    const [editingItem, setEditingItem] = useState(null);
+    const [error, setError] = useState('');
+
+    // Move fetchMenuItems here so it's accessible in all functions.
+    const fetchMenuItems = async () => {
+        try {
+            const response = await axios.get('http://localhost:8081/api/menu', {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            setMenuItems(response.data);
+        } catch (err) {
+            setError('Error fetching menu items');
+            console.error(err);
+        }
+    };
+
+    useEffect(() => {
+        fetchMenuItems();
+    }, [token]);
+
+    const handleToggleAvailability = async (itemId) => {
+        try {
+            await axios.put(
+                `http://localhost:8081/api/menu/admin/toggle-available/${itemId}`,
+                {},
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+            fetchMenuItems();
+        } catch (err) {
+            setError('Error updating availability');
+            console.error(err);
+        }
+    };
+
+    const handleAddMenuItem = async () => {
+        try {
+            await axios.post('http://localhost:8081/api/menu/admin/add', newItem, {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            fetchMenuItems();
+            setNewItem({
+                name: '',
+                description: '',
+                price: '',
+                imageUrl: '',
+                available: true,
+            });
+        } catch (err) {
+            setError('Error adding menu item');
+            console.error(err);
+        }
+    };
+
+    const handleEditMenuItem = (item) => {
+        setEditingItem(item);
+        setNewItem({
+            name: item.name,
+            description: item.description,
+            price: item.price,
+            imageUrl: item.imageUrl,
+            available: item.available,
+        });
+    };
+
+    const handleUpdateMenuItem = async () => {
+        try {
+            await axios.put(
+                `http://localhost:8081/api/menu/admin/update/${editingItem.id}`,
+                newItem,
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+            fetchMenuItems();
+            setEditingItem(null);
+            setNewItem({
+                name: '',
+                description: '',
+                price: '',
+                imageUrl: '',
+                available: true,
+            });
+        } catch (err) {
+            setError('Error updating menu item');
+            console.error(err);
+        }
+    };
+
+    const handleDeleteMenuItem = async (id) => {
+        try {
+            await axios.delete(`http://localhost:8081/api/menu/admin/delete/${id}`, {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            fetchMenuItems();
+        } catch (err) {
+            setError('Error deleting menu item');
+            console.error(err);
+        }
+    };
+
+    return (
+        <div className="bg-[var(--primary-bg)] rounded-lg shadow-md p-6 mt-10">
+            <h2 className="text-[var(--primary-text)] text-2xl mb-4">Manage Menu Items</h2>
+            {error && (
+                <div className="bg-red-100 text-red-600 p-4 rounded-lg mb-4">
+                    <p>{error}</p>
+                </div>
+            )}
+            <div className="mb-6">
+                <div className="flex space-x-4">
+                    {/*<label className="block text-[var(--primary-text)] mb-2">Name</label>*/}
+                    <input
+                        type="text"
+                        placeholder="Name"
+                        value={newItem.name}
+                        onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
+                        className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                    <input
+                        type="text"
+                        placeholder="Description"
+                        value={newItem.description}
+                        onChange={(e) =>
+                            setNewItem({ ...newItem, description: e.target.value })
+                        }
+                        className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                    <input
+                        type="number"
+                        placeholder="Price"
+                        value={newItem.price}
+                        onChange={(e) => setNewItem({ ...newItem, price: e.target.value })}
+                        className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                    <button
+                        onClick={() =>
+                            editingItem ? handleUpdateMenuItem() : handleAddMenuItem()
+                        }
+                        className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
+                    >
+                        {editingItem ? 'Update' : 'Add'}
+                    </button>
+                </div>
+            </div>
+            <table className="min-w-full divide-y bg-[var(--primary-bg)]">
+                <thead>
+                <tr>
+                    <th
+                        scope="col"
+                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    >
+                        ID
+                    </th>
+                    <th
+                        scope="col"
+                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    >
+                        Name
+                    </th>
+                    <th
+                        scope="col"
+                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    >
+                        Description
+                    </th>
+                    <th
+                        scope="col"
+                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    >
+                        Price
+                    </th>
+                    <th
+                        scope="col"
+                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    >
+                        Status
+                    </th>
+                    <th
+                        scope="col"
+                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    >
+                        Actions
+                    </th>
+                </tr>
+                </thead>
+                <tbody className=" bg-[var(--primary-bg)] divide-y divide-gray-200 ">
+                {menuItems.map((item) => (
+                    <tr key={item.id} className="hover:bg-[var(--primary-bg)]">
+                        <td className="px-6 py-4 whitespace-nowrap">{item.id}</td>
+                        <td className="px-6 py-4 whitespace-nowrap">{item.name}</td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                            {item.description}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">${item.price}</td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                <span
+                    className={`px-2 py-1 rounded-full ${
+                        item.available
+                            ? 'bg-green-500 text-white'
+                            : 'bg-red-500 text-white'
+                    }`}
+                >
+                  {item.available ? 'Available' : 'Unavailable'}
+                </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap space-x-2">
+                            <button
+                                onClick={() => handleEditMenuItem(item)}
+                                className="px-2 py-1 bg-yellow-500 text-white rounded-md hover:bg-yellow-600 transition"
+                            >
+                                Edit
+                            </button>
+                            <button
+                                onClick={() => handleDeleteMenuItem(item.id)}
+                                className="px-2 py-1 bg-red-500 text-white rounded-md hover:bg-red-600 transition"
+                            >
+                                Delete
+                            </button>
+                            <button
+                                onClick={() => handleToggleAvailability(item.id)}
+                                className={`px-2 py-1 ${
+                                    item.available ? 'bg-green-500' : 'bg-red-500'
+                                } text-white rounded-md hover:bg-opacity-90 transition`}
+                            >
+                                {item.available ? 'Make Unavailable' : 'Make Available'}
+                            </button>
+                        </td>
+                    </tr>
+                ))}
+                </tbody>
+            </table>
+        </div>
+    );
+};
+
+export default ManageMenu;
+
+
+ManageOrders.js
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+
+const ManageOrders = ({ token }) => {
+    const [orders, setOrders] = useState([]);
+    const [orderEditMode, setOrderEditMode] = useState({});
+    const [error, setError] = useState('');
+
+    // Define fetchOrders outside of useEffect so it can be reused.
+    const fetchOrders = async () => {
+        try {
+            const response = await axios.get('http://localhost:8081/api/orders/admin/all', {
+                headers: { 'Authorization': `Bearer ${token}` },
+            });
+            setOrders(response.data);
+            const initialEditMode = {};
+            response.data.forEach(order => {
+                initialEditMode[order.id] = order.status === 'PENDING';
+            });
+            setOrderEditMode(initialEditMode);
+        } catch (err) {
+            setError('Error fetching orders');
+            console.error(err);
+        }
+    };
+
+    useEffect(() => {
+        fetchOrders();
+    }, [token]);
+
+    const handleUpdateOrderStatus = async (orderId, newStatus) => {
+        try {
+            await axios.put(
+                `http://localhost:8081/api/orders/admin/update/${orderId}`,
+                { status: newStatus },
+                { headers: { 'Authorization': `Bearer ${token}` } }
+            );
+            setOrderEditMode(prev => ({ ...prev, [orderId]: false }));
+            // Now fetchOrders is accessible here.
+            fetchOrders();
+        } catch (err) {
+            setError('Error updating order status');
+            console.error(err);
+        }
+    };
+
+    return (
+        <div className="bg-[var(--primary-bg)]  rounded-lg shadow-md p-6 mt-10">
+            <h2 className="text-[var(--primary-text)] text-2xl mb-4">Manage Orders</h2>
+            {error && (
+                <div className="bg-red-100 text-red-600 p-4 rounded-lg mb-4">
+                    <p>{error}</p>
+                </div>
+            )}
+            <table className="min-w-fullbg-[var(--primary-bg)]  divide-y">
+                <thead>
+                <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Order ID
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        User
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Total Amount
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Status
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Items
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Actions
+                    </th>
+                </tr>
+                </thead>
+                <tbody className="bg-[var(--primary-bg)]  divide-y divide-gray-200 dark:divide-gray-700">
+                {orders.map(order => {
+                    const itemNames = order.items
+                        ? order.items.map(item => item.menuItem?.name).join(', ')
+                        : '';
+                    return (
+                        <tr key={order.id} className="hover:bg-[var(--primary-bg)] ">
+                            <td className="px-6 py-4 whitespace-nowrap">{order.id}</td>
+                            <td className="px-6 py-4 whitespace-nowrap">{order.user?.username}</td>
+                            <td className="px-6 py-4 whitespace-nowrap">${order.totalAmount}</td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                  <span
+                      className={`px-2 py-1 rounded-full ${
+                          order.status === 'COMPLETED'
+                              ? 'bg-green-500 text-white'
+                              : order.status === 'CANCELED'
+                                  ? 'bg-red-500 text-white'
+                                  : 'bg-yellow-500 text-white'
+                      }`}
+                  >
+                    {order.status}
+                  </span>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">{itemNames}</td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                                {orderEditMode[order.id] ? (
+                                    <>
+                                        <button
+                                            onClick={() => handleUpdateOrderStatus(order.id, 'COMPLETED')}
+                                            className="px-2 py-1 bg-green-500 text-white rounded-md hover:bg-green-600 transition"
+                                        >
+                                            Complete
+                                        </button>
+                                        <button
+                                            onClick={() => handleUpdateOrderStatus(order.id, 'CANCELED')}
+                                            className="px-2 py-1 bg-red-500 text-white rounded-md hover:bg-red-600 transition"
+                                        >
+                                            Cancel
+                                        </button>
+                                    </>
+                                ) : (
+                                    <button
+                                        onClick={() =>
+                                            setOrderEditMode(prev => ({ ...prev, [order.id]: true }))
+                                        }
+                                        className="px-2 py-1 bg-yellow-500 text-white rounded-md hover:bg-yellow-600 transition"
+                                    >
+                                        Edit
+                                    </button>
+                                )}
+                            </td>
+                        </tr>
+                    );
+                })}
+                </tbody>
+            </table>
+        </div>
+    );
+};
+
+export default ManageOrders;
+
+
+SentimentAnalysisPage.js
+import React, { useState, useEffect } from 'react';
+import { Pie } from 'react-chartjs-2';
+import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
+import axios from 'axios';
+
+ChartJS.register(ArcElement, Tooltip, Legend);
+
+const SentimentAnalysisPage = ({ token }) => {
+    const [feedbackData, setFeedbackData] = useState([]);
+    const [positiveCount, setPositiveCount] = useState(0);
+    const [negativeCount, setNegativeCount] = useState(0);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+
+    useEffect(() => {
+        const fetchData = async () => {
+            setLoading(true);
+            try {
+                const response = await axios.get('http://localhost:8081/api/feedback/all', {
+                    headers: { Authorization: `Bearer ${token}` },
+                });
+
+                const feedbackList = response.data;
+                const positive = feedbackList.filter(feedback => feedback.sentiment === 'Positive').length;
+                const negative = feedbackList.filter(feedback => feedback.sentiment === 'Negative').length;
+
+                setFeedbackData(feedbackList);
+                setPositiveCount(positive);
+                setNegativeCount(negative);
+                setLoading(false);
+            } catch (err) {
+                setError('Failed to retrieve feedback data');
+                setLoading(false);
+                console.error('Error fetching feedback data:', err);
+            }
+        };
+
+        fetchData();
+    }, [token]);
+
+    const data = {
+        labels: ['Positive', 'Negative'],
+        datasets: [{
+            data: [positiveCount, negativeCount],
+            backgroundColor: ['#4CAF50', '#F44336'],
+            hoverOffset: 8,
+            borderWidth: 1,
+            borderColor: '#fff'
+        }]
+    };
+
+    const options = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'right',
+                labels: {
+                    font: {
+                        size: 14 // Use text color variable
+                    }
+                }
+            }
+        },
+        animation: { tension: 1, duration: 1000 }
+    };
+
+    return (
+        <div className="container mx-auto p-8 max-w-4xl">
+            {error && (
+                <div className="bg-red-100 text-red-700 p-4 rounded mb-4 dark:bg-red-800 dark:text-red-300">
+                    ❌ {error}
+                </div>
+            )}
+
+            <h2 className="text-3xl font-bold mb-6 text-center text-[var(--primary-text)]">
+                Feedback Sentiment Analysis
+            </h2>
+
+            {loading ? (
+                <div className="flex justify-center items-center mt-12">
+                    <svg className="animate-spin h-10 w-10 text-blue-500 dark:text-blue-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v1a7 7 0 00-7 7h1z"></path>
+                    </svg>
+                </div>
+            ) : (
+                <>
+                    <div className="rounded-lg shadow-lg p-6 bg-[var(--primary-bg)] mb-8">
+                        <Pie
+                            data={data}
+                            options={options}
+                            height={400}
+                            style={{ borderRadius: 12 }}
+                        />
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="bg-green-50 p-4 rounded shadow dark:bg-green-900 dark:text-white">
+                            <h3 className="text-lg font-medium mb-2">Positive Feedback</h3>
+                            <div className="text-2xl font-bold">{positiveCount}</div>
+                            <p className="text-gray-600 dark:text-gray-400">{((positiveCount / feedbackData.length) * 100).toFixed(0)}% of total feedback</p>
+                        </div>
+
+                        <div className="bg-red-50 p-4 rounded shadow dark:bg-red-900 dark:text-white">
+                            <h3 className="text-lg font-medium mb-2">Negative Feedback</h3>
+                            <div className="text-2xl font-bold">{negativeCount}</div>
+                            <p className="text-gray-600 dark:text-gray-400">{((negativeCount / feedbackData.length) * 100).toFixed(0)}% of total feedback</p>
+                        </div>
+
+                        <div className="col-span-full bg-yellow-50 p-4 rounded shadow dark:bg-yellow-900 dark:text-white">
+                            <h3 className="text-lg font-medium mb-2">Overall Statistics</h3>
+                            <ul className="space-y-2">
+                                <li className="flex justify-between items-center">
+                                    <span>Total Feedback</span>
+                                    <span className="font-bold">{feedbackData.length}</span>
+                                </li>
+                                <li className="flex justify-between items-center">
+                                    <span>Positive Rate</span>
+                                    <span className="text-green-600 font-bold dark:text-green-400">
+                    {((positiveCount / (positiveCount + negativeCount)) * 100).toFixed(1)}%
+                  </span>
+                                </li>
+                                <li className="flex justify-between items-center">
+                                    <span>Negative Rate</span>
+                                    <span className="text-red-600 font-bold dark:text-red-400">
+                    {((negativeCount / (positiveCount + negativeCount)) * 100).toFixed(1)}%
+                  </span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </>
+            )}
+        </div>
+    );
+};
+
+export default SentimentAnalysisPage;
+
+
+ViewUsers.js
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+
+const ViewUsers = ({ token }) => {
+    const [users, setUsers] = useState([]);
+    const [error, setError] = useState('');
+
+    useEffect(() => {
+        const fetchUsers = async () => {
+            try {
+                const response = await axios.get('http://localhost:8081/api/admin/users', {
+                    headers: { 'Authorization': `Bearer ${token}` },
+                });
+                setUsers(response.data);
+            } catch (err) {
+                setError('Error fetching users');
+                console.error(err);
+            }
+        };
+        fetchUsers();
+    }, [token]);
+
+    return (
+        <div className="bg-[var(--primary-bg)] rounded-lg shadow-md p-6 mt-10">
+            <h2 className="text-[var(--primary-text)] text-2xl mb-4">View Users</h2>
+            {error && (
+                <div className="bg-red-100 text-red-600 p-4 rounded-lg mb-4">
+                    <p>{error}</p>
+                </div>
+            )}
+            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                <thead>
+                <tr>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        ID
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Username
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Email
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Full Name
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Phone
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Gender
+                    </th>
+                </tr>
+                </thead>
+                <tbody className="bg-[var(--primary-bg)] divide-y divide-gray-200 dark:divide-gray-700">
+                {users.map((user) => (
+                    <tr key={user.id} className="hover:bg-[var(--primary-bg)]">
+                        <td className="px-6 py-4 whitespace-nowrap">
+                            {user.id}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                            {user.username}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                            {user.email}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                            {user.fullName}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                            {user.phone}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                            {user.gender}
+                        </td>
+                    </tr>
+                ))}
+                </tbody>
+            </table>
+        </div>
+    );
+};
+
+export default ViewUsers;
+
+
+
+F:\cafe_management_0.1\cafe_frontend\src\components\CustomerDashboard
+BrowseMenu.js
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+
+const BrowseMenu = ({ token }) => {
+    const [menuItems, setMenuItems] = useState([]);
+    const [error, setError] = useState('');
+
+    useEffect(() => {
+        fetchMenu();
+    }, [token]);
+
+    const fetchMenu = async () => {
+        try {
+            const response = await axios.get('http://localhost:8081/api/menu', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            setMenuItems(response.data);
+        } catch (err) {
+            setError('Error fetching menu items');
+            console.error(err);
+        }
+    };
+
+    return (
+        <div>
+            {error && <div className="bg-red-100 text-red-800 p-4 rounded mb-4">{error}</div>}
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {menuItems.map(item => (
+                    <div
+                        key={item.id}
+                        className="bg-[var(--primary-bg)] rounded-lg shadow p-4 hover:bg-[var(--primary-bg)] transition"
+                    >
+                        <h3 className="text-lg font-semibold mb-2">{item.name}</h3>
+                        <p className="text-gray-600 dark:text-gray-400 mb-2">{item.description}</p>
+                        <p className="text-xl font-medium bg-[var(--primary-bg)] mb-2">${item.price}</p>
+                        {!item.available && (
+                            <span className="bg-red-200 text-red-800 px-2 py-1 rounded-full text-xs">
+                Unavailable
+              </span>
+                        )}
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+};
+
+export default BrowseMenu;
+
+
+CustomerDashboard.js
+// src/components/CustomerDashboard/CustomerDashboard.js
+import React, { useState, useEffect } from 'react';
+import { Sun, Moon } from 'react-feather';
+import BrowseMenu from './BrowseMenu';
+import PlaceOrder from './PlaceOrder';
+import ViewOrders from './ViewOrders';
+import Profile from './Profile';
+import SubmitFeedback from './SubmitFeedback';
+import { useNavigate } from 'react-router-dom';
+
+const CustomerDashboard = ({ token }) => {
+    const [activeTab, setActiveTab] = useState('browse');
+    const [theme, setTheme] = useState(localStorage.getItem('theme') || 'light');
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        const root = document.documentElement;
+        root.style.setProperty('--primary-bg', theme === 'light' ? '#f8f9fa' : '#1a1a1a');
+        root.style.setProperty('--primary-text', theme === 'light' ? '#212529' : '#e9ecef');
+        root.style.setProperty('--accent-color', '#3B82F6');
+        localStorage.setItem('theme', theme);
+    }, [theme]);
+
+    const toggleTheme = () => {
+        setTheme(prev => (prev === 'light' ? 'dark' : 'light'));
+    };
+
+    const handleLogout = () => {
+        localStorage.removeItem('token');
+        localStorage.removeItem('username');
+        localStorage.removeItem('role');
+        navigate('/');
+    };
+
+    return (
+        <div className="min-h-screen bg-[var(--primary-bg)] text-[var(--primary-text)] transition-all duration-300">
+            <header className="bg-[var(--primary-bg)] shadow-lg px-4 py-4">
+                <div className="max-w-7xl mx-auto flex items-center justify-between">
+                    <h1 className="text-2xl font-bold">Customer Dashboard</h1>
+                    <div className="flex space-x-4">
+                        <button
+                            onClick={toggleTheme}
+                            className="p-2 rounded-full hover:[var(--primary-bg)]"
+                        >
+                            {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
+                        </button>
+                        <button
+                            onClick={handleLogout}
+                            className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition"
+                        >
+                            Logout
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            <main className="max-w-7xl mx-auto px-4 py-8">
+                <nav className="mb-6">
+                    <button
+                        onClick={() => setActiveTab('browse')}
+                        className={`py-2 px-4 mr-2 rounded-lg ${activeTab === 'browse' ? 'bg-[var(--accent-color)] text-white' : 'hover:[var(--primary-bg)]'}`}
+                    >
+                        Browse Menu
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('place')}
+                        className={`py-2 px-4 mr-2 rounded-lg ${activeTab === 'place' ? 'bg-[var(--accent-color)] text-white' : 'hover:[var(--primary-bg)]'}`}
+                    >
+                        Place Order
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('orders')}
+                        className={`py-2 px-4 mr-2 rounded-lg ${activeTab === 'orders' ? 'bg-[var(--accent-color)] text-white' : 'hover:[var(--primary-bg)]'}`}
+                    >
+                        My Orders
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('profile')}
+                        className={`py-2 px-4 mr-2 rounded-lg ${activeTab === 'profile' ? 'bg-[var(--accent-color)] text-white' : 'hover:[var(--primary-bg)]0'}`}
+                    >
+                        My Profile
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('feedback')}
+                        className={`py-2 px-4 mr-2 rounded-lg ${activeTab === 'feedback' ? 'bg-yellow-500 text-white' : 'hover:bg-yellow-300'}`}
+                    >
+                        Submit Feedback
+                    </button>
+                </nav>
+
+                <div className="bg-[var(--primary-bg)] p-6 rounded-lg shadow">
+                    {activeTab === 'browse' && <BrowseMenu token={token} />}
+                    {activeTab === 'place' && <PlaceOrder token={token} />}
+                    {activeTab === 'orders' && <ViewOrders token={token} />}
+                    {activeTab === 'profile' && <Profile token={token} />}
+                    {activeTab === 'feedback' && <SubmitFeedback token={token} />}
+                </div>
+            </main>
+        </div>
+    );
+};
+
+export default CustomerDashboard;
+
+
+PlaceOrder.js
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+
+const PlaceOrder = ({ token }) => {
+    const [menuItems, setMenuItems] = useState([]);
+    const [selectedItems, setSelectedItems] = useState([]);
+    const [error, setError] = useState('');
+
+    // Fetch menu items on token change
+    useEffect(() => {
+        fetchMenu();
+    }, [token]);
+
+    const fetchMenu = async () => {
+        try {
+            const response = await axios.get('http://localhost:8081/api/menu', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            setMenuItems(response.data);
+        } catch (err) {
+            setError('Error fetching menu items');
+            console.error(err);
+        }
+    };
+
+    // Add item to order or increment quantity
+    const addToOrder = (item) => {
+        const existing = selectedItems.find(i => i.id === item.id);
+        if (existing) {
+            setSelectedItems(selectedItems.map(i =>
+                i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i
+            ));
+        } else {
+            setSelectedItems([...selectedItems, { ...item, quantity: 1 }]);
+        }
+    };
+
+    // Decrement quantity or remove item
+    const handleDecrement = (itemId) => {
+        setSelectedItems(prevItems =>
+            prevItems.map(item => {
+                if (item.id === itemId) {
+                    if (item.quantity > 1) {
+                        return { ...item, quantity: item.quantity - 1 };
+                    }
+                    return null; // Remove item when quantity reaches 1
+                }
+                return item;
+            }).filter(item => item !== null)
+        );
+    };
+
+    // Increment quantity
+    const handleIncrement = (itemId) => {
+        setSelectedItems(prevItems =>
+            prevItems.map(item =>
+                item.id === itemId ? { ...item, quantity: item.quantity + 1 } : item
+            )
+        );
+    };
+
+    // Place order with calculated total
+    const placeOrder = async () => {
+        const totalAmount = selectedItems.reduce((sum, item) =>
+            sum + (item.price * item.quantity), 0
+        );
+        const orderData = {
+            totalAmount,
+            items: selectedItems.map(item => ({
+                menuItem: { id: item.id },
+                quantity: item.quantity,
+                price: item.price
+            }))
+        };
+        try {
+            await axios.post('http://localhost:8081/api/orders/place', orderData, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            alert('Order placed successfully!');
+            setSelectedItems([]);
+        } catch (err) {
+            setError('Error placing order');
+            console.error(err);
+        }
+    };
+
+    return (
+        <div>
+            <h2 className="text-2xl font-bold mb-2">Place Order</h2>
+            {error && <div className="text-red-500">{error}</div>}
+
+            {/* Menu items section remains the same */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                {menuItems.filter(item => item.available)
+                    .map(item => (
+                        <div key={item.id} className="bg-[var(--primary-bg)] p-4 shadow rounded">
+                            <h3 className="text-xl font-semibold">{item.name}</h3>
+                            <p>{item.description}</p>
+                            <p className="font-bold">${item.price}</p>
+                            <button
+                                onClick={() => addToOrder(item)}
+                                className="mt-2 px-4 py-2 bg-green-500 text-white rounded"
+                            >
+                                Add to Order
+                            </button>
+                        </div>
+                    ))}
+            </div>
+
+            {/* Updated order summary with quantity controls */}
+            {selectedItems.length > 0 && (
+                <div className="mb-4">
+                    <h3 className="text-xl font-bold mb-2">Your Order</h3>
+                    <ul>
+                        {selectedItems.map(item => (
+                            <li key={item.id} className="border p-2 mb-2">
+                                {item.name} -
+                                <div className="flex space-x-2 items-center">
+                                    <button
+                                        onClick={() => handleDecrement(item.id)}
+                                        className="bg-red-500 px-2 py-1 rounded text-white"
+                                    >
+                                        -
+                                    </button>
+                                    <span>{item.quantity}</span>
+                                    <button
+                                        onClick={() => handleIncrement(item.id)}
+                                        className="bg-green-500 px-2 py-1 rounded text-white"
+                                    >
+                                        +
+                                    </button>
+                                </div>
+                                ${item.price * item.quantity}
+                            </li>
+                        ))}
+                    </ul>
+                    <button
+                        onClick={placeOrder}
+                        className="px-4 py-2 bg-blue-500 text-white rounded"
+                    >
+                        Place Order
+                    </button>
+                </div>
+            )}
+        </div>
+    );
+};
+
+export default PlaceOrder;
+
+
+Profile.js
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+
+const Profile = () => {
+    const [tab, setTab] = useState('edit'); // Default tab: Edit Profile
+    const [userData, setUserData] = useState(null); // Holds the fetched user data
+    const [editData, setEditData] = useState({}); // Holds the form data for editing
+    const [passwordData, setPasswordData] = useState({
+        oldPassword: '',
+        newPassword: '',
+        confirmPassword: '',
+    });
+
+    useEffect(() => {
+        fetchUserProfile();
+    }, []);
+
+    const fetchUserProfile = async () => {
+        try {
+            const response = await axios.get('http://localhost:8081/auth/profile', {
+                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+            });
+            const data = response.data; // Fetched user data
+            setUserData(data); // Store the fetched data in state
+            setEditData(data); // Pre-fill the edit form with the fetched data
+        } catch (error) {
+            console.error(error);
+        }
+    };
+
+    const handleEditSubmit = async (e) => {
+        e.preventDefault();
+        try {
+            await axios.put('http://localhost:8081/auth/profile/update', editData, {
+                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+            });
+            alert('Profile updated successfully');
+            fetchUserProfile(); // Refresh the data after update
+        } catch (error) {
+            console.error(error.response ? error.response.data : error.message);
+        }
+    };
+
+    const handlePasswordSubmit = async (e) => {
+        e.preventDefault();
+        try {
+            await axios.post('http://localhost:8081/auth/profile/change-password', passwordData, {
+                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+            });
+            alert('Password changed successfully');
+        } catch (error) {
+            console.error(error.response ? error.response.data : error.message);
+        }
+    };
+
+    return (
+        <div className="flex h-screen">
+            {/* Left Sidebar Menu */}
+            <div className="w-64 bg-[var(--primary-bg)] flex flex-col justify-between py-4 border-r border-gray-300">
+                <div className="space-y-2 px-4">
+                    <h3 className="text-lg font-bold mb-4">Profile</h3>
+                    <button
+                        onClick={() => setTab('edit')}
+                        className={`py-2 px-4 rounded-md text-left w-full ${
+                            tab === 'edit' ? 'bg-blue-500 text-white' : 'bg-white text-gray-700'
+                        }`}
+                    >
+                        Edit Profile
+                    </button>
+                    <button
+                        onClick={() => setTab('password')}
+                        className={`py-2 px-4 rounded-md text-left w-full ${
+                            tab === 'password' ? 'bg-blue-500 text-white' : 'bg-white text-gray-700'
+                        }`}
+                    >
+                        Change Password
+                    </button>
+                </div>
+                <div className="mt-auto px-4">
+                    <p className="text-sm text-gray-600 text-center">&copy; 2023 Your App Name</p>
+                </div>
+            </div>
+
+            {/* Right Content Area */}
+            <div className="flex-1 p-6 overflow-y-auto">
+                {tab === 'edit' && (
+                    <form onSubmit={handleEditSubmit} className="space-y-4">
+                        <h2 className="text-2xl font-bold">Edit Profile</h2>
+                        <input
+                            type="text"
+                            placeholder="Full Name"
+                            value={editData.fullName || ''}
+                            onChange={(e) =>
+                                setEditData({ ...editData, fullName: e.target.value })
+                            }
+                            className="w-full px-4 py-2 border bg-[var(--primary-bg)] border-gray-300 rounded-md"
+                        />
+                        <input
+                            type="email"
+                            placeholder="Email"
+                            value={editData.email || ''}
+                            onChange={(e) =>
+                                setEditData({ ...editData, email: e.target.value })
+                            }
+                            className="w-full px-4 py-2 border  bg-[var(--primary-bg)] border-gray-300 rounded-md"
+                        />
+                        <input
+                            type="text"
+                            placeholder="Phone"
+                            value={editData.phone || ''}
+                            onChange={(e) =>
+                                setEditData({ ...editData, phone: e.target.value })
+                            }
+                            className="w-full px-4 py-2 border  bg-[var(--primary-bg)] border-gray-300 rounded-md"
+                        />
+                        <select
+                            value={editData.gender || ''}
+                            onChange={(e) =>
+                                setEditData({ ...editData, gender: e.target.value })
+                            }
+                            className="w-full px-4 py-2 border bg-[var(--primary-bg)] border-gray-300 rounded-md"
+                        >
+                            <option value="" disabled hidden>
+                                Select Gender
+                            </option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
+                        </select>
+                        <button
+                            type="submit"
+                            className="w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600 transition duration-300"
+                        >
+                            Save Changes
+                        </button>
+                    </form>
+                )}
+                {tab === 'password' && (
+                    <form onSubmit={handlePasswordSubmit} className="space-y-4">
+                        <h2 className="text-2xl font-bold">Change Password</h2>
+                        <input
+                            type="password"
+                            placeholder="Old Password"
+                            value={passwordData.oldPassword}
+                            onChange={(e) =>
+                                setPasswordData({ ...passwordData, oldPassword: e.target.value })
+                            }
+                            className="w-full px-4 py-2   bg-[var(--primary-bg)] border-gray-300 rounded-md"
+                        />
+                        <input
+                            type="password"
+                            placeholder="New Password"
+                            value={passwordData.newPassword}
+                            onChange={(e) =>
+                                setPasswordData({ ...passwordData, newPassword: e.target.value })
+                            }
+                            className="w-full px-4 py-2 border  bg-[var(--primary-bg)] border-gray-300 rounded-md"
+                        />
+                        <input
+                            type="password"
+                            placeholder="Confirm Password"
+                            value={passwordData.confirmPassword}
+                            onChange={(e) =>
+                                setPasswordData({ ...passwordData, confirmPassword: e.target.value })
+                            }
+                            className="w-full px-4 py-2 border border-gray-300 rounded-md"
+                        />
+                        <button
+                            type="submit"
+                            className="w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600 transition duration-300"
+                        >
+                            Change Password
+                        </button>
+                    </form>
+                )}
+            </div>
+        </div>
+    );
+};
+
+export default Profile;
+
+
+SubmitFeedback.js
+// src/components/CustomerDashboard/SubmitFeedback.js
+import React, { useState } from 'react';
+import axios from 'axios';
+
+const SubmitFeedback = ({ token }) => {
+    const [feedbackMessage, setFeedbackMessage] = useState('');
+    const [rating, setRating] = useState('');
+    const [error, setError] = useState('');
+    const [successMessage, setSuccessMessage] = useState('');
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+
+        if (!feedbackMessage) {
+            setError('Please provide a feedback message and rating.');
+            return;
+        }
+
+        try {
+            const response = await axios.post(
+                'http://localhost:8081/api/feedback/submit',
+                { username: localStorage.getItem('username'), feedbackMessage, rating },
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+
+            // setSuccessMessage(response.data.message + ". Sentiment: " + response.data.sentiment);
+            setSuccessMessage(response.data.message);
+            setFeedbackMessage('');
+            setRating('');
+            setError('');
+        } catch (err) {
+            setError('Error submitting feedback');
+            console.error(err);
+        }
+    };
+
+    return (
+        <div>
+            {successMessage && (
+                <div className="bg-green-100 text-green-800 p-4 rounded mb-4">
+                    {successMessage}
+                </div>
+            )}
+
+            {error && (
+                <div className="bg-red-100 text-red-800 p-4 rounded mb-4">
+                    {error}
+                </div>
+            )}
+
+            <form onSubmit={handleSubmit} className="space-y-4">
+                <div>
+                    <label className="block text-sm font-medium mb-2">Feedback Message</label>
+                    <textarea
+                        value={feedbackMessage}
+                        onChange={(e) => setFeedbackMessage(e.target.value)}
+                        required
+                        className="w-full px-3 py-2 border bg-[var(--primary-bg)] rounded-lg focus:ring focus:ring-blue-300"
+                    />
+                </div>
+
+                <div>
+                    <label className="block text-sm font-medium mb-2">Rating (1-5)</label>
+                    <input
+                        type="number"
+                        min="1"
+                        max="5"
+                        value={rating}
+                        onChange={(e) => setRating(e.target.value)}
+
+                        className="w-full px-3 py-2 border bg-[var(--primary-bg)] rounded-lg focus:ring focus:ring-blue-300"
+                    />
+                </div>
+
+                <button
+                    type="submit"
+                    className="w-full bg-yellow-500 text-white px-4 py-2 rounded-lg hover:bg-yellow-600 transition"
+                >
+                    Submit Feedback
+                </button>
+            </form>
+        </div>
+    );
+};
+
+export default SubmitFeedback;
+
+
+ViewOrders.js
+// src/components/CustomerDashboard/ViewOrders.js
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+
+const ViewOrders = ({ token }) => {
+    const [orders, setOrders] = useState([]);
+    const [error, setError] = useState('');
+
+    useEffect(() => {
+        fetchOrders();
+    }, [token]);
+
+    const fetchOrders = async () => {
+        try {
+            const response = await axios.get('http://localhost:8081/api/orders/myorders', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            setOrders(response.data);
+        } catch (err) {
+            setError('Error fetching your orders');
+            console.error(err);
+        }
+    };
+
+    return (
+        <div>
+            <h2 className="text-2xl font-bold mb-2">My Orders</h2>
+            {error && <div className="text-red-500">{error}</div>}
+            <table className="min-w-full border">
+                <thead>
+                <tr className="text-[var(--primary-text)]">
+                    <th className="p-2 border">Order ID</th>
+                    <th className="p-2 border">Item Names</th>
+                    <th className="p-2 border">Total Amount</th>
+                    <th className="p-2 border">Status</th>
+                </tr>
+                </thead>
+                <tbody>
+                {orders.map(order => (
+                    <tr key={order.id}>
+                        <td className="p-2 border">{order.id}</td>
+                        <td className="p-2 border"> {/* New data column */}
+                            {order.items?.map(item => item.menuItem?.name).join(', ') || 'Loading...'}
+                        </td>
+                        <td className="p-2 border">${order.totalAmount}</td>
+                        {/*<td className="p-2 border">{order.status}</td>*/}
+                        <td className="p-2 border">
+                  <span
+                      className={`px-2 py-1 rounded-full ${
+                          order.status === 'COMPLETED'
+                              ? 'bg-green-500 text-white'
+                              : order.status === 'CANCELED'
+                                  ? 'bg-red-500 text-white'
+                                  : 'bg-yellow-500 text-white'
+                      }`}
+                  >
+                    {order.status}
+                  </span>
+                        </td>
+                    </tr>
+                ))}
+                </tbody>
+            </table>
+        </div>
+    );
+};
+
+export default ViewOrders;
+
+
+
+
+F:\cafe_management_0.1\Python_sentiment
+app.py
+from flask import Flask, request, jsonify
+from flask_cors import CORS  # Import flask_cors
+import pickle
+import re
+
+app = Flask(__name__)
+
+# Enable CORS for all routes globally
+CORS(app)
+
+# Preprocessing function (same as used during training)
+def preprocess_text(text):
+    if not isinstance(text, str):
+        return ""
+    # Remove URLs
+    text = re.sub(r"http\S+|www.\S+", "", text)
+    # Remove non-alphabetic characters
+    text = re.sub(r"[^a-zA-Z\s]", "", text)
+    # Convert to lowercase and strip extra whitespace
+    text = " ".join(text.lower().split())
+    return text
+
+# Load the trained model and vectorizer from the pickle file
+with open("trained_model.pkl", "rb") as f:
+    model, vectorizer = pickle.load(f)
+
+@app.route("/predict", methods=["POST"])
+def predict():
+    try:
+        data = request.get_json()
+        review = data.get("review", "")
+        if not review:
+            return jsonify({"error": "No review provided"}), 400
+
+        # Preprocess the input review
+        processed_review = preprocess_text(review)
+        # Transform the review into vectorized form
+        review_vec = vectorizer.transform([processed_review])
+        # Get the prediction (0 for negative, 1 for positive)
+        prediction = model.predict(review_vec)[0]
+        sentiment = "Positive" if prediction == 1 else "Negative"
+        return jsonify({"sentiment": sentiment})
+
+    except Exception as e:
+        return jsonify({"error": f"Error during prediction: {str(e)}"}), 500
+
+if __name__ == "__main__":
+    app.run(debug=True, port=5000)
