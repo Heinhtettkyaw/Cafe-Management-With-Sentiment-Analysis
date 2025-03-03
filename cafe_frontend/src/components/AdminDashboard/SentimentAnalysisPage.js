@@ -1,14 +1,34 @@
 import React, { useState, useEffect } from 'react';
-import { Pie } from 'react-chartjs-2';
-import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
+import { Pie, Line } from 'react-chartjs-2';
+import {
+    Chart as ChartJS,
+    ArcElement,
+    Tooltip,
+    Legend,
+    CategoryScale,
+    LinearScale,
+    PointElement,
+    LineElement,
+    Title
+} from 'chart.js';
 import axios from 'axios';
 
-ChartJS.register(ArcElement, Tooltip, Legend);
+ChartJS.register(
+    ArcElement,
+    Tooltip,
+    Legend,
+    CategoryScale,
+    LinearScale,
+    PointElement,
+    LineElement,
+    Title
+);
 
 const SentimentAnalysisPage = ({ token }) => {
     const [feedbackData, setFeedbackData] = useState([]);
     const [positiveCount, setPositiveCount] = useState(0);
     const [negativeCount, setNegativeCount] = useState(0);
+    const [timeSeriesData, setTimeSeriesData] = useState({});
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
@@ -21,8 +41,42 @@ const SentimentAnalysisPage = ({ token }) => {
                 });
 
                 const feedbackList = response.data;
-                const positive = feedbackList.filter(feedback => feedback.sentiment === 'Positive').length;
-                const negative = feedbackList.filter(feedback => feedback.sentiment === 'Negative').length;
+                const positive = feedbackList.filter(f => f.sentiment === 'Positive').length;
+                const negative = feedbackList.filter(f => f.sentiment === 'Negative').length;
+
+                // Process time series data
+                const dailyCounts = {};
+                feedbackList.forEach(feedback => {
+                    const date = new Date(feedback.createdAt).toISOString().split('T')[0];
+                    dailyCounts[date] = dailyCounts[date] || { positive: 0, negative: 0 };
+                    if (feedback.sentiment === 'Positive') {
+                        dailyCounts[date].positive += 1;
+                    } else {
+                        dailyCounts[date].negative += 1;
+                    }
+                });
+
+                const labels = Object.keys(dailyCounts).sort();
+                const positiveData = labels.map(date => dailyCounts[date].positive);
+                const negativeData = labels.map(date => dailyCounts[date].negative);
+
+                setTimeSeriesData({
+                    labels,
+                    datasets: [
+                        {
+                            label: 'Positive',
+                            data: positiveData,
+                            borderColor: '#4CAF50',
+                            backgroundColor: 'rgba(76, 175, 80, 0.2)',
+                        },
+                        {
+                            label: 'Negative',
+                            data: negativeData,
+                            borderColor: '#F44336',
+                            backgroundColor: 'rgba(244, 67, 54, 0.2)',
+                        }
+                    ]
+                });
 
                 setFeedbackData(feedbackList);
                 setPositiveCount(positive);
@@ -38,7 +92,7 @@ const SentimentAnalysisPage = ({ token }) => {
         fetchData();
     }, [token]);
 
-    const data = {
+    const pieData = {
         labels: ['Positive', 'Negative'],
         datasets: [{
             data: [positiveCount, negativeCount],
@@ -49,7 +103,7 @@ const SentimentAnalysisPage = ({ token }) => {
         }]
     };
 
-    const options = {
+    const pieOptions = {
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
@@ -57,81 +111,102 @@ const SentimentAnalysisPage = ({ token }) => {
                 position: 'right',
                 labels: {
                     font: {
-                        size: 14 // Use text color variable
+                        size: 14
                     }
                 }
             }
         },
-        animation: { tension: 1, duration: 1000 }
+        animation: { duration: 1000 }
+    };
+
+    const lineOptions = {
+        responsive: true,
+        plugins: {
+            legend: {
+                position: 'top',
+            },
+            title: {
+                display: true,
+                text: 'Sentiment Trend Over Time',
+            },
+        },
+        scales: {
+            x: {
+                title: {
+                    display: true,
+                    text: 'Date',
+                }
+            },
+            y: {
+                title: {
+                    display: true,
+                    text: 'Number of Feedbacks',
+                },
+                beginAtZero: true,
+            }
+        }
     };
 
     return (
-        <div className="container mx-auto p-8 max-w-4xl">
+        <div className="p-4">
             {error && (
-                <div className="bg-red-100 text-red-700 p-4 rounded mb-4 dark:bg-red-800 dark:text-red-300">
+                <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
                     ❌ {error}
                 </div>
             )}
 
-            <h2 className="text-3xl font-bold mb-6 text-center text-[var(--primary-text)]">
-                Feedback Sentiment Analysis
-            </h2>
+            <h2 className="text-2xl font-bold mb-6">Sentiment Analysis</h2>
 
-            {loading ? (
-                <div className="flex justify-center items-center mt-12">
-                    <svg className="animate-spin h-10 w-10 text-blue-500 dark:text-blue-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v1a7 7 0 00-7 7h1z"></path>
-                    </svg>
+            {/* Pie Chart Section */}
+            <div className="mb-8">
+                <h3 className="text-xl font-semibold mb-4">Sentiment Distribution</h3>
+                <div className="max-w-md mx-auto">
+                    {loading ? (
+                        <div className="flex justify-center items-center h-64">
+                            <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-gray-900"></div>
+                        </div>
+                    ) : (
+                        <Pie data={pieData} options={pieOptions} />
+                    )}
                 </div>
-            ) : (
-                <>
-                    <div className="rounded-lg shadow-lg p-6 bg-[var(--primary-bg)] mb-8">
-                        <Pie
-                            data={data}
-                            options={options}
-                            height={400}
-                            style={{ borderRadius: 12 }}
-                        />
+            </div>
+
+            {/* Line Chart Section */}
+            <div className="mt-8">
+                <h3 className="text-xl font-semibold mb-4">Sentiment Trend</h3>
+                <div className="max-w-2xl mx-auto">
+                    {loading ? (
+                        <div className="flex justify-center items-center h-64">
+                            <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-gray-900"></div>
+                        </div>
+                    ) : (
+                        <Line data={timeSeriesData} options={lineOptions} />
+                    )}
+                </div>
+            </div>
+
+            {/* Statistics Section */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
+                <div className="bg-white p-4 rounded-lg shadow-md">
+                    <h4 className="text-lg font-medium mb-2">Positive Feedback</h4>
+                    <div className="text-3xl font-bold text-green-500">
+                        {positiveCount}
+                        <span className="text-gray-500 text-sm ml-2">
+              ({((positiveCount / feedbackData.length) * 100).toFixed(0)}%)
+            </span>
                     </div>
+                </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="bg-green-50 p-4 rounded shadow dark:bg-green-900 dark:text-white">
-                            <h3 className="text-lg font-medium mb-2">Positive Feedback</h3>
-                            <div className="text-2xl font-bold">{positiveCount}</div>
-                            <p className="text-gray-600 dark:text-gray-400">{((positiveCount / feedbackData.length) * 100).toFixed(0)}% of total feedback</p>
-                        </div>
-
-                        <div className="bg-red-50 p-4 rounded shadow dark:bg-red-900 dark:text-white">
-                            <h3 className="text-lg font-medium mb-2">Negative Feedback</h3>
-                            <div className="text-2xl font-bold">{negativeCount}</div>
-                            <p className="text-gray-600 dark:text-gray-400">{((negativeCount / feedbackData.length) * 100).toFixed(0)}% of total feedback</p>
-                        </div>
-
-                        <div className="col-span-full bg-yellow-50 p-4 rounded shadow dark:bg-yellow-900 dark:text-white">
-                            <h3 className="text-lg font-medium mb-2">Overall Statistics</h3>
-                            <ul className="space-y-2">
-                                <li className="flex justify-between items-center">
-                                    <span>Total Feedback</span>
-                                    <span className="font-bold">{feedbackData.length}</span>
-                                </li>
-                                <li className="flex justify-between items-center">
-                                    <span>Positive Rate</span>
-                                    <span className="text-green-600 font-bold dark:text-green-400">
-                    {((positiveCount / (positiveCount + negativeCount)) * 100).toFixed(1)}%
-                  </span>
-                                </li>
-                                <li className="flex justify-between items-center">
-                                    <span>Negative Rate</span>
-                                    <span className="text-red-600 font-bold dark:text-red-400">
-                    {((negativeCount / (positiveCount + negativeCount)) * 100).toFixed(1)}%
-                  </span>
-                                </li>
-                            </ul>
-                        </div>
+                <div className="bg-white p-4 rounded-lg shadow-md">
+                    <h4 className="text-lg font-medium mb-2">Negative Feedback</h4>
+                    <div className="text-3xl font-bold text-red-500">
+                        {negativeCount}
+                        <span className="text-gray-500 text-sm ml-2">
+              ({((negativeCount / feedbackData.length) * 100).toFixed(0)}%)
+            </span>
                     </div>
-                </>
-            )}
+                </div>
+            </div>
         </div>
     );
 };

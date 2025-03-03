@@ -1,5 +1,6 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS  # Import flask_cors
+from datetime import datetime
 import pickle
 import re
 
@@ -43,6 +44,11 @@ def predict():
 
     except Exception as e:
         return jsonify({"error": f"Error during prediction: {str(e)}"}), 500
+
+        return jsonify({
+        "sentiment": sentiment,
+        "timestamp": datetime.now().isoformat()  # Add ISO timestamp
+         })
 
 if __name__ == "__main__":
     app.run(debug=True, port=5000)
