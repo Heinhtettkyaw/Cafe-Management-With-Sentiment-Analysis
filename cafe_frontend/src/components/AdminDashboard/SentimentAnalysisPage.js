@@ -44,36 +44,58 @@ const SentimentAnalysisPage = ({ token }) => {
                 const positive = feedbackList.filter(f => f.sentiment === 'Positive').length;
                 const negative = feedbackList.filter(f => f.sentiment === 'Negative').length;
 
-                // Process time series data
-                const dailyCounts = {};
+                // Process daily average ratings by sentiment
+                const dailyRatings = {};
                 feedbackList.forEach(feedback => {
                     const date = new Date(feedback.createdAt).toISOString().split('T')[0];
-                    dailyCounts[date] = dailyCounts[date] || { positive: 0, negative: 0 };
+                    const rating = parseFloat(feedback.rating) || 0; // Convert to number
+
+                    if (!dailyRatings[date]) {
+                        dailyRatings[date] = {
+                            positiveSum: 0,
+                            positiveCount: 0,
+                            negativeSum: 0,
+                            negativeCount: 0
+                        };
+                    }
+
                     if (feedback.sentiment === 'Positive') {
-                        dailyCounts[date].positive += 1;
-                    } else {
-                        dailyCounts[date].negative += 1;
+                        dailyRatings[date].positiveSum += rating;
+                        dailyRatings[date].positiveCount += 1;
+                    } else if (feedback.sentiment === 'Negative') {
+                        dailyRatings[date].negativeSum += rating;
+                        dailyRatings[date].negativeCount += 1;
                     }
                 });
 
-                const labels = Object.keys(dailyCounts).sort();
-                const positiveData = labels.map(date => dailyCounts[date].positive);
-                const negativeData = labels.map(date => dailyCounts[date].negative);
+                const labels = Object.keys(dailyRatings).sort();
+                const positiveAverages = labels.map(date => {
+                    const data = dailyRatings[date];
+                    return data.positiveCount > 0 ?
+                        (data.positiveSum / data.positiveCount).toFixed(1) :
+                        0;
+                });
+                const negativeAverages = labels.map(date => {
+                    const data = dailyRatings[date];
+                    return data.negativeCount > 0 ?
+                        (data.negativeSum / data.negativeCount).toFixed(1) :
+                        0;
+                });
 
                 setTimeSeriesData({
                     labels,
                     datasets: [
                         {
-                            label: 'Positive',
-                            data: positiveData,
+                            label: 'Positive Rating',
+                            data: positiveAverages,
                             borderColor: '#4CAF50',
-                            backgroundColor: 'rgba(76, 175, 80, 0.2)',
+                            fill: false
                         },
                         {
-                            label: 'Negative',
-                            data: negativeData,
+                            label: 'Negative Rating',
+                            data: negativeAverages,
                             borderColor: '#F44336',
-                            backgroundColor: 'rgba(244, 67, 54, 0.2)',
+                            fill: false
                         }
                     ]
                 });
@@ -127,24 +149,23 @@ const SentimentAnalysisPage = ({ token }) => {
             },
             title: {
                 display: true,
-                text: 'Sentiment Trend Over Time',
+                text: 'Sentiment Rating Trend Over Time',
             },
         },
         scales: {
             x: {
-                title: {
-                    display: true,
-                    text: 'Date',
-                }
+                title: { display: true, text: 'Date' },
             },
             y: {
-                title: {
-                    display: true,
-                    text: 'Number of Feedbacks',
+                title: { display: true, text: 'Average Rating' },
+                min: 1,
+                max: 5,
+                ticks: {
+                    stepSize: 1,
+                    callback: (value) => value % 1 === 0 ? value : null, // Show only integers
                 },
-                beginAtZero: true,
-            }
-        }
+            },
+        },
     };
 
     return (
@@ -171,9 +192,9 @@ const SentimentAnalysisPage = ({ token }) => {
                 </div>
             </div>
 
-            {/* Line Chart Section */}
+            {/* Line Chart */}
             <div className="mt-8">
-                <h3 className="text-xl font-semibold mb-4">Sentiment Trend</h3>
+                <h3 className="text-xl font-semibold mb-4">Average Rating Trend</h3>
                 <div className="max-w-2xl mx-auto">
                     {loading ? (
                         <div className="flex justify-center items-center h-64">

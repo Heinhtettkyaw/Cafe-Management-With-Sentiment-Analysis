@@ -9,6 +9,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
 import java.util.Map;
+import java.lang.Double;
 
 @RestController
 @RequestMapping("/api/feedback")
@@ -27,7 +28,7 @@ public class FeedbackController {
         try {
             String username = feedbackData.get("username");
             String feedbackMessage = feedbackData.get("feedbackMessage");
-            String rating = feedbackData.get("rating");
+            Double rating = Double.valueOf(feedbackData.get("rating"));
 
             // Call the Python microservice to get sentiment analysis
             Map<String, String> requestBody = Map.of("review", feedbackMessage);

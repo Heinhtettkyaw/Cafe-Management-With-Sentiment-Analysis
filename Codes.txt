@@ -470,6 +470,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
 import java.util.Map;
+import java.lang.Double;
 
 @RestController
 @RequestMapping("/api/feedback")
@@ -488,7 +489,7 @@ public class FeedbackController {
         try {
             String username = feedbackData.get("username");
             String feedbackMessage = feedbackData.get("feedbackMessage");
-            String rating = feedbackData.get("rating");
+            Double rating = Double.valueOf(feedbackData.get("rating"));
 
             // Call the Python microservice to get sentiment analysis
             Map<String, String> requestBody = Map.of("review", feedbackMessage);
@@ -941,7 +942,7 @@ public class Feedback {
     private String feedbackMessage;
 
     @Column(nullable = true)
-    private String rating;  // You can store rating as a string, or use an enum
+    private Double rating;  // You can store rating as a string, or use an enum
 
     @Column(nullable = false)
     private Long createdAt;
@@ -2573,16 +2574,36 @@ export default ManageOrders;
 
 SentimentAnalysisPage.js
 import React, { useState, useEffect } from 'react';
-import { Pie } from 'react-chartjs-2';
-import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
+import { Pie, Line } from 'react-chartjs-2';
+import {
+    Chart as ChartJS,
+    ArcElement,
+    Tooltip,
+    Legend,
+    CategoryScale,
+    LinearScale,
+    PointElement,
+    LineElement,
+    Title
+} from 'chart.js';
 import axios from 'axios';
 
-ChartJS.register(ArcElement, Tooltip, Legend);
+ChartJS.register(
+    ArcElement,
+    Tooltip,
+    Legend,
+    CategoryScale,
+    LinearScale,
+    PointElement,
+    LineElement,
+    Title
+);
 
 const SentimentAnalysisPage = ({ token }) => {
     const [feedbackData, setFeedbackData] = useState([]);
     const [positiveCount, setPositiveCount] = useState(0);
     const [negativeCount, setNegativeCount] = useState(0);
+    const [timeSeriesData, setTimeSeriesData] = useState({});
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
@@ -2595,8 +2616,64 @@ const SentimentAnalysisPage = ({ token }) => {
                 });
 
                 const feedbackList = response.data;
-                const positive = feedbackList.filter(feedback => feedback.sentiment === 'Positive').length;
-                const negative = feedbackList.filter(feedback => feedback.sentiment === 'Negative').length;
+                const positive = feedbackList.filter(f => f.sentiment === 'Positive').length;
+                const negative = feedbackList.filter(f => f.sentiment === 'Negative').length;
+
+                // Process daily average ratings by sentiment
+                const dailyRatings = {};
+                feedbackList.forEach(feedback => {
+                    const date = new Date(feedback.createdAt).toISOString().split('T')[0];
+                    const rating = parseFloat(feedback.rating) || 0; // Convert to number
+
+                    if (!dailyRatings[date]) {
+                        dailyRatings[date] = {
+                            positiveSum: 0,
+                            positiveCount: 0,
+                            negativeSum: 0,
+                            negativeCount: 0
+                        };
+                    }
+
+                    if (feedback.sentiment === 'Positive') {
+                        dailyRatings[date].positiveSum += rating;
+                        dailyRatings[date].positiveCount += 1;
+                    } else if (feedback.sentiment === 'Negative') {
+                        dailyRatings[date].negativeSum += rating;
+                        dailyRatings[date].negativeCount += 1;
+                    }
+                });
+
+                const labels = Object.keys(dailyRatings).sort();
+                const positiveAverages = labels.map(date => {
+                    const data = dailyRatings[date];
+                    return data.positiveCount > 0 ?
+                        (data.positiveSum / data.positiveCount).toFixed(1) :
+                        0;
+                });
+                const negativeAverages = labels.map(date => {
+                    const data = dailyRatings[date];
+                    return data.negativeCount > 0 ?
+                        (data.negativeSum / data.negativeCount).toFixed(1) :
+                        0;
+                });
+
+                setTimeSeriesData({
+                    labels,
+                    datasets: [
+                        {
+                            label: 'Positive Rating',
+                            data: positiveAverages,
+                            borderColor: '#4CAF50',
+                            fill: false
+                        },
+                        {
+                            label: 'Negative Rating',
+                            data: negativeAverages,
+                            borderColor: '#F44336',
+                            fill: false
+                        }
+                    ]
+                });
 
                 setFeedbackData(feedbackList);
                 setPositiveCount(positive);
@@ -2612,7 +2689,7 @@ const SentimentAnalysisPage = ({ token }) => {
         fetchData();
     }, [token]);
 
-    const data = {
+    const pieData = {
         labels: ['Positive', 'Negative'],
         datasets: [{
             data: [positiveCount, negativeCount],
@@ -2623,7 +2700,7 @@ const SentimentAnalysisPage = ({ token }) => {
         }]
     };
 
-    const options = {
+    const pieOptions = {
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
@@ -2631,87 +2708,106 @@ const SentimentAnalysisPage = ({ token }) => {
                 position: 'right',
                 labels: {
                     font: {
-                        size: 14 // Use text color variable
+                        size: 14
                     }
                 }
             }
         },
-        animation: { tension: 1, duration: 1000 }
+        animation: { duration: 1000 }
+    };
+
+    const lineOptions = {
+        responsive: true,
+        plugins: {
+            legend: {
+                position: 'top',
+            },
+            title: {
+                display: true,
+                text: 'Sentiment Rating Trend Over Time',
+            },
+        },
+        scales: {
+            x: {
+                title: { display: true, text: 'Date' },
+            },
+            y: {
+                title: { display: true, text: 'Average Rating' },
+                min: 1,
+                max: 5,
+                ticks: {
+                    stepSize: 1,
+                    callback: (value) => value % 1 === 0 ? value : null, // Show only integers
+                },
+            },
+        },
     };
 
     return (
-        <div className="container mx-auto p-8 max-w-4xl">
+        <div className="p-4">
             {error && (
-                <div className="bg-red-100 text-red-700 p-4 rounded mb-4 dark:bg-red-800 dark:text-red-300">
+                <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
                     ❌ {error}
                 </div>
             )}
 
-            <h2 className="text-3xl font-bold mb-6 text-center text-[var(--primary-text)]">
-                Feedback Sentiment Analysis
-            </h2>
+            <h2 className="text-2xl font-bold mb-6">Sentiment Analysis</h2>
 
-            {loading ? (
-                <div className="flex justify-center items-center mt-12">
-                    <svg className="animate-spin h-10 w-10 text-blue-500 dark:text-blue-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v1a7 7 0 00-7 7h1z"></path>
-                    </svg>
+            {/* Pie Chart Section */}
+            <div className="mb-8">
+                <h3 className="text-xl font-semibold mb-4">Sentiment Distribution</h3>
+                <div className="max-w-md mx-auto">
+                    {loading ? (
+                        <div className="flex justify-center items-center h-64">
+                            <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-gray-900"></div>
+                        </div>
+                    ) : (
+                        <Pie data={pieData} options={pieOptions} />
+                    )}
                 </div>
-            ) : (
-                <>
-                    <div className="rounded-lg shadow-lg p-6 bg-[var(--primary-bg)] mb-8">
-                        <Pie
-                            data={data}
-                            options={options}
-                            height={400}
-                            style={{ borderRadius: 12 }}
-                        />
+            </div>
+
+            {/* Line Chart */}
+            <div className="mt-8">
+                <h3 className="text-xl font-semibold mb-4">Average Rating Trend</h3>
+                <div className="max-w-2xl mx-auto">
+                    {loading ? (
+                        <div className="flex justify-center items-center h-64">
+                            <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-gray-900"></div>
+                        </div>
+                    ) : (
+                        <Line data={timeSeriesData} options={lineOptions} />
+                    )}
+                </div>
+            </div>
+
+            {/* Statistics Section */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
+                <div className="bg-white p-4 rounded-lg shadow-md">
+                    <h4 className="text-lg font-medium mb-2">Positive Feedback</h4>
+                    <div className="text-3xl font-bold text-green-500">
+                        {positiveCount}
+                        <span className="text-gray-500 text-sm ml-2">
+              ({((positiveCount / feedbackData.length) * 100).toFixed(0)}%)
+            </span>
                     </div>
+                </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="bg-green-50 p-4 rounded shadow dark:bg-green-900 dark:text-white">
-                            <h3 className="text-lg font-medium mb-2">Positive Feedback</h3>
-                            <div className="text-2xl font-bold">{positiveCount}</div>
-                            <p className="text-gray-600 dark:text-gray-400">{((positiveCount / feedbackData.length) * 100).toFixed(0)}% of total feedback</p>
-                        </div>
-
-                        <div className="bg-red-50 p-4 rounded shadow dark:bg-red-900 dark:text-white">
-                            <h3 className="text-lg font-medium mb-2">Negative Feedback</h3>
-                            <div className="text-2xl font-bold">{negativeCount}</div>
-                            <p className="text-gray-600 dark:text-gray-400">{((negativeCount / feedbackData.length) * 100).toFixed(0)}% of total feedback</p>
-                        </div>
-
-                        <div className="col-span-full bg-yellow-50 p-4 rounded shadow dark:bg-yellow-900 dark:text-white">
-                            <h3 className="text-lg font-medium mb-2">Overall Statistics</h3>
-                            <ul className="space-y-2">
-                                <li className="flex justify-between items-center">
-                                    <span>Total Feedback</span>
-                                    <span className="font-bold">{feedbackData.length}</span>
-                                </li>
-                                <li className="flex justify-between items-center">
-                                    <span>Positive Rate</span>
-                                    <span className="text-green-600 font-bold dark:text-green-400">
-                    {((positiveCount / (positiveCount + negativeCount)) * 100).toFixed(1)}%
-                  </span>
-                                </li>
-                                <li className="flex justify-between items-center">
-                                    <span>Negative Rate</span>
-                                    <span className="text-red-600 font-bold dark:text-red-400">
-                    {((negativeCount / (positiveCount + negativeCount)) * 100).toFixed(1)}%
-                  </span>
-                                </li>
-                            </ul>
-                        </div>
+                <div className="bg-white p-4 rounded-lg shadow-md">
+                    <h4 className="text-lg font-medium mb-2">Negative Feedback</h4>
+                    <div className="text-3xl font-bold text-red-500">
+                        {negativeCount}
+                        <span className="text-gray-500 text-sm ml-2">
+              ({((negativeCount / feedbackData.length) * 100).toFixed(0)}%)
+            </span>
                     </div>
-                </>
-            )}
+                </div>
+            </div>
         </div>
     );
 };
 
 export default SentimentAnalysisPage;
-
 
 ViewUsers.js
 import React, { useState, useEffect } from 'react';
@@ -3461,9 +3557,111 @@ export default ViewOrders;
 
 
 F:\cafe_management_0.1\Python_sentiment
+import pandas as pd
+import re
+import pickle
+import numpy as np
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.naive_bayes import ComplementNB
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score, precision_score, recall_score, confusion_matrix, f1_score
+
+# -----------------------
+# Preprocessing function
+# -----------------------
+def preprocess_text(text):
+    if not isinstance(text, str):
+        return ""
+    # Remove URLs
+    text = re.sub(r"http\S+|www.\S+", "", text)
+    # Remove non-alphabetic characters (retain whitespace)
+    text = re.sub(r"[^a-zA-Z\s]", "", text)
+    # Convert to lowercase and strip extra whitespace
+    return " ".join(text.lower().split())
+
+# ---------------------------------------------------------
+# STEP 1: Build vocabulary from a sample of the dataset
+# ---------------------------------------------------------
+sample_size = 100000  # use 100K rows to build vocabulary (adjust if needed)
+print("Building vocabulary from a sample...")
+sample_df = pd.read_csv("ratings.csv", nrows=sample_size)
+sample_df.dropna(subset=["review"], inplace=True)
+sample_df["review"] = sample_df["review"].apply(preprocess_text)
+
+# You can adjust max_features to control the size of the vocabulary.
+vectorizer = TfidfVectorizer(stop_words="english", max_features=50000)
+vectorizer.fit(sample_df["review"].values)
+print("Vocabulary built. Total features:", len(vectorizer.get_feature_names_out()))
+
+# ---------------------------------------------------------
+# STEP 2: Load full dataset and split into train and test
+# ---------------------------------------------------------
+print("Loading full dataset for evaluation...")
+full_df = pd.read_csv("ratings.csv")
+full_df.dropna(subset=["review", "sentiment"], inplace=True)
+full_df["review"] = full_df["review"].apply(preprocess_text)
+# Convert sentiment: if rating is 1 or 2 -> 0 (negative), else -> 1 (positive)
+full_df["sentiment"] = full_df["sentiment"].apply(lambda x: 0 if x in [1, 2] else 1)
+
+# Split the dataset into training and testing sets (e.g., 80/20 split)
+train_df, test_df = train_test_split(full_df, test_size=0.2, random_state=42)
+print(f"Training samples: {len(train_df)}, Testing samples: {len(test_df)}")
+
+# ---------------------------------------------------------
+# STEP 3: Train model using batch training with partial_fit
+# ---------------------------------------------------------
+# Initialize the classifier
+model = ComplementNB()
+classes = [0, 1]
+
+# Train on the training set in batches (simulate streaming with chunks)
+batch_size = 100000  # Adjust batch size if needed
+num_batches = int(np.ceil(len(train_df) / batch_size))
+print("Starting batch training on the training set...")
+for i in range(num_batches):
+    batch = train_df.iloc[i * batch_size:(i + 1) * batch_size]
+    X_batch = vectorizer.transform(batch["review"].values)
+    y_batch = batch["sentiment"].values.astype(int)
+    model.partial_fit(X_batch, y_batch, classes=classes)
+    print(f"Completed training batch {i+1}/{num_batches}. Processed {len(batch)} samples.")
+
+print("Training completed on the training set.")
+
+# ---------------------------------------------------------
+# STEP 4: Evaluate the model on the testing set
+# ---------------------------------------------------------
+X_test = vectorizer.transform(test_df["review"].values)
+y_test = test_df["sentiment"].values.astype(int)
+y_pred = model.predict(X_test)
+
+accuracy = accuracy_score(y_test, y_pred)
+precision = precision_score(y_test, y_pred)
+recall = recall_score(y_test, y_pred)
+f1 = f1_score(y_test, y_pred)
+cm = confusion_matrix(y_test, y_pred)
+
+print("\nEvaluation Metrics:")
+print(f"Accuracy  : {accuracy:.4f}")
+print(f"Precision : {precision:.4f}")
+print(f"Recall    : {recall:.4f}")
+print(f"F1 Score  : {f1:.4f}")
+print("Confusion Matrix:")
+print(cm)
+
+# ---------------------------------------------------------
+# STEP 5: Save the trained model and vectorizer together
+# ---------------------------------------------------------
+output_file = "trained_model.pkl"
+with open(output_file, "wb") as f:
+    pickle.dump((model, vectorizer), f)
+
+print(f"Model and vectorizer saved successfully to '{output_file}'.")
+
+
 app.py
 from flask import Flask, request, jsonify
 from flask_cors import CORS  # Import flask_cors
+from datetime import datetime
 import pickle
 import re
 
@@ -3507,6 +3705,11 @@ def predict():
 
     except Exception as e:
         return jsonify({"error": f"Error during prediction: {str(e)}"}), 500
+
+        return jsonify({
+        "sentiment": sentiment,
+        "timestamp": datetime.now().isoformat()  # Add ISO timestamp
+         })
 
 if __name__ == "__main__":
     app.run(debug=True, port=5000)

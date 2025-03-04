@@ -26,7 +26,7 @@ public class Feedback {
     private String feedbackMessage;
 
     @Column(nullable = true)
-    private String rating;  // You can store rating as a string, or use an enum
+    private Double rating;  // You can store rating as a string, or use an enum
 
     @Column(nullable = false)
     private Long createdAt;
